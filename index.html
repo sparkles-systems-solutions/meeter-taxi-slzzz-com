@@ -18,61 +18,19 @@
         body { font-family: 'Segoe UI', Roboto, sans-serif; background: #eef2f7; margin: 0; padding: 15px; display: flex; justify-content: center; min-height: 100vh; }
         .app-container { background: white; width: 100%; max-width: 420px; border-radius: 45px; box-shadow: var(--shadow); padding: 20px; position: relative; border: 8px solid #fff; }
         
-        /* Header with Logo and Settings Icon */
-        .header-section { 
-            display: flex; 
-            align-items: center; 
-            justify-content: space-between;
-            margin-bottom: 15px;
-            padding: 0 5px;
-        }
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .logo-area { 
-            width: 50px; 
-            height: 50px; 
-            border-radius: 50%; 
-            background: var(--primary); 
-            color: white; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            font-weight: 900; 
-            font-size: 24px; 
-            border: 2px solid #fff; 
-            box-shadow: 0 3px 10px rgba(0,0,0,0.1); 
-            overflow: hidden;
-        }
+        .header-section { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; padding: 0 5px; }
+        .header-left { display: flex; align-items: center; gap: 10px; }
+        .logo-area { width: 50px; height: 50px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 24px; border: 2px solid #fff; box-shadow: 0 3px 10px rgba(0,0,0,0.1); overflow: hidden; }
         .logo-area img { width: 100%; height: 100%; object-fit: cover; }
-        .brand-name { 
-            color: var(--primary); 
-            font-size: 14px; 
-            font-weight: 800; 
-            text-transform: uppercase;
-            line-height: 1.2;
-        }
-        .settings-icon {
-            background: #f0f2f5;
-            width: 40px;
-            height: 40px;
-            border-radius: 25px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-size: 20px;
-            transition: 0.2s;
-        }
+        .brand-name { color: var(--primary); font-size: 14px; font-weight: 800; text-transform: uppercase; line-height: 1.2; }
+        .settings-icon { background: #f0f2f5; width: 40px; height: 40px; border-radius: 25px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 20px; transition: 0.2s; }
         .settings-icon:active { transform: scale(0.95); }
         
-        .top-bar { display: flex; justify-content: flex-end; gap: 8px; margin-bottom: 10px; }
-        .top-btn { background: #f0f2f5; border: 1px solid #e0e6ed; padding: 8px 14px; border-radius: 25px; font-size: 12px; font-weight: 700; color: var(--dark); cursor: pointer; }
-        .top-btn:active { transform: scale(0.96); }
-        .night-top-btn { background: linear-gradient(135deg, #f39c12, #e67e22); color: white; border: none; }
-        .night-top-active { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+        .action-buttons { display: flex; gap: 10px; margin-bottom: 15px; }
+        .action-btn { flex: 1; background: #f0f2f5; border: 1px solid #e0e6ed; padding: 10px; border-radius: 25px; font-size: 13px; font-weight: 700; color: var(--dark); cursor: pointer; text-align: center; transition: 0.2s; }
+        .action-btn:active { transform: scale(0.96); }
+        .night-btn { background: linear-gradient(135deg, #f39c12, #e67e22); color: white; border: none; }
+        .night-active { background: linear-gradient(135deg, #e74c3c, #c0392b); }
         
         input, select { width: 100%; padding: 14px; margin: 5px 0; border: 1px solid #e0e6ed; border-radius: 15px; background: var(--gray); font-size: 14px; }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -105,11 +63,12 @@
         .modal-content { background: white; width: 90%; max-width: 380px; border-radius: 40px; padding: 25px; position: relative; max-height: 85vh; overflow-y: auto; }
         .close-circle { position: absolute; top: 15px; right: 15px; background: #eee; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; }
         
-        .receipt-print { width: 58mm; max-width: 58mm; margin: 0 auto; padding: 2mm 3mm; font-family: 'Courier New', monospace; font-size: 10pt; line-height: 1.2; background: white; }
-        .r-header { background: #000; color: #fff; padding: 5px; text-align: center; font-size: 12pt; font-weight: bold; margin-bottom: 8px; }
-        .r-row { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px dotted #ccc; font-size: 9pt; }
-        .r-total { background: #1a4a9e; color: white; padding: 8px; text-align: center; margin: 8px 0; font-size: 12pt; font-weight: bold; }
-        .r-divider { text-align: center; padding: 4px 0; font-size: 9pt; }
+        .receipt-print { width: 58mm; max-width: 58mm; margin: 0 auto; padding: 2mm 3mm; font-family: 'Courier New', monospace; font-size: 9pt; line-height: 1.2; background: white; }
+        .r-header { background: #000; color: #fff; padding: 5px; text-align: center; font-size: 11pt; font-weight: bold; margin-bottom: 8px; }
+        .r-row { display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px dotted #ccc; font-size: 8pt; }
+        .r-total { background: #1a4a9e; color: white; padding: 6px; text-align: center; margin: 6px 0; font-size: 10pt; font-weight: bold; }
+        .r-divider { text-align: center; padding: 3px 0; font-size: 8pt; }
+        .duplicate-badge { background: #e74c3c; color: white; text-align: center; padding: 3px; font-size: 8pt; margin-bottom: 5px; border-radius: 3px; }
         .receipt-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; }
         .btn-wa, .btn-gm, .btn-pdf, .btn-print { padding: 12px; border-radius: 15px; border: none; font-weight: bold; cursor: pointer; }
         .btn-wa { background: #25D366; color: white; }
@@ -135,19 +94,18 @@
         .payment-detail-fields { margin-top: 15px; padding: 15px; background: #f0f2f5; border-radius: 20px; }
         .confirm-payment-btn { background: var(--secondary); color: white; padding: 16px; border: none; border-radius: 25px; font-size: 16px; font-weight: bold; width: 100%; margin-top: 20px; cursor: pointer; }
         
-        /* Report Tabs */
         .report-tabs { display: flex; gap: 5px; margin-bottom: 15px; }
         .report-tab { flex: 1; padding: 8px; border: none; border-radius: 20px; background: #e0e6ed; cursor: pointer; font-weight: 600; }
         .report-tab.active { background: var(--primary); color: white; }
         .payment-stats { margin: 10px 0; }
         .stat-row { display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid #eee; }
         hr { margin: 10px 0; opacity: 0.2; }
+        .history-item { background: #f8f9fa; padding: 15px; margin-bottom: 10px; border-radius: 20px; border-left: 5px solid var(--primary); }
     </style>
 </head>
 <body>
 
 <div class="app-container">
-    <!-- Header with Logo and Settings Icon -->
     <div class="header-section">
         <div class="header-left">
             <div id="main-logo-area" class="logo-area">🚕</div>
@@ -156,13 +114,17 @@
         <div class="settings-icon" onclick="openLogin()">⚙️</div>
     </div>
 
+    <div class="action-buttons">
+        <button id="nightBtn" class="action-btn night-btn" onclick="toggleNightCharge()">🌙 NIGHT OFF</button>
+        <button class="action-btn" onclick="resetToNew()">🔄 NEW RIDE</button>
+    </div>
+
     <div class="mode-selector">
         <button id="mode-auto" class="mode-btn active" onclick="setMode('auto')">🎯 Auto</button>
         <button id="mode-gps" class="mode-btn" onclick="setMode('gps')">📍 GPS+Manual</button>
         <button id="mode-manual" class="mode-btn" onclick="setMode('manual')">✏️ Manual KM</button>
     </div>
 
-    <!-- Auto Location Card -->
     <div id="auto-location-card" class="location-card">
         <div style="display: flex; justify-content: space-between; align-items: center;">
             <div style="flex: 1;">
@@ -173,7 +135,6 @@
         </div>
     </div>
 
-    <!-- Pickup & Drop Fields -->
     <div id="location-fields" class="location-fields" style="display: none;">
         <div class="grid-2">
             <input id="start-loc" type="text" placeholder="Pick Up Location">
@@ -309,7 +270,7 @@
         </div>
         <div class="receipt-btns">
             <button class="btn-wa" onclick="shareWA()">📱 WHATSAPP</button>
-            <button class="btn-gm" onclick="sendEmailWithPDF()">📧 GMAIL</button>
+            <button class="btn-gm" onclick="sendEmailWithAttachment()">📧 GMAIL</button>
         </div>
         <button class="btn-pdf" onclick="downloadReceiptPDF()">📄 PDF</button>
         <button class="btn-print" onclick="printViaBluetooth()">🖨️ PRINT</button>
@@ -329,6 +290,7 @@
     let pendingRideData = null, selectedMethod = "cash";
     let currentLocationAddress = "", currentLocationLat = null, currentLocationLon = null;
     let startLocationAddress = "", endLocationAddress = "";
+    let isDuplicateView = false; // For duplicate receipt view from history
     
     let SETTINGS = {
         base: 100, rate: 80, waitRate: 5, nightPercent: 10,
@@ -540,20 +502,131 @@
     
     function closePaymentPopup() { document.getElementById('payment-popup').style.display = 'none'; pendingRideData = null; }
     
-    function confirmPaymentAndShowReceipt() { if(!pendingRideData) return; pendingRideData.payment = getPaymentInfo(); saveRide(pendingRideData); showReceipt(pendingRideData); closePaymentPopup(); sTime = null; if(currentMode !== 'manual') setTimeout(() => startGPS(), 1000); }
+    function confirmPaymentAndShowReceipt() { if(!pendingRideData) return; pendingRideData.payment = getPaymentInfo(); saveRide(pendingRideData); showReceipt(pendingRideData, false); closePaymentPopup(); sTime = null; if(currentMode !== 'manual') setTimeout(() => startGPS(), 1000); }
     
     function saveRide(ride) { let list = JSON.parse(localStorage.getItem('rides')||'[]'); list.push(ride); localStorage.setItem('rides', JSON.stringify(list)); }
     
-    function showReceipt(ride) {
+    // ========== SHOW RECEIPT WITH QR CODE CONTAINING ALL DETAILS ==========
+    function showReceipt(ride, isDuplicate) {
         let sub = (ride.manualFare > 0) ? ride.manualFare : (SETTINGS.base + (Math.max(0, ride.km - 1) * SETTINGS.rate)), waitC = ride.wait * SETTINGS.waitRate;
-        let rows = `<div class="r-row"><span>Receipt:</span><b>${ride.id}</b></div><div class="r-row"><span>Date:</span><b>${new Date(ride.time).toLocaleString()}</b></div><div class="r-row"><span>Mobile:</span><b>${ride.mobile}</b></div><div class="r-row"><span>Route:</span><b>${ride.from.substring(0,35)} → ${ride.to.substring(0,35)}</b></div><div class="r-row"><span>Distance:</span><b>${ride.km.toFixed(2)} km</b></div><div class="r-row"><span>Fare:</span><b>Rs. ${sub}</b></div>`;
+        
+        let duplicateHtml = isDuplicate ? '<div class="duplicate-badge">📋 DUPLICATE / COPY</div>' : '';
+        
+        let rows = duplicateHtml;
+        rows += `<div class="r-row"><span>Receipt:</span><b>${ride.id}</b></div>
+                 <div class="r-row"><span>Date:</span><b>${new Date(ride.time).toLocaleString()}</b></div>
+                 <div class="r-row"><span>Mobile:</span><b>${ride.mobile}</b></div>
+                 <div class="r-row"><span>From:</span><b>${ride.from.substring(0,30)}</b></div>
+                 <div class="r-row"><span>To:</span><b>${ride.to.substring(0,30)}</b></div>
+                 <div class="r-row"><span>Distance:</span><b>${ride.km.toFixed(2)} km</b></div>
+                 <div class="r-row"><span>Fare:</span><b>Rs. ${sub}</b></div>`;
         if(waitC > 0) rows += `<div class="r-row"><span>Wait(${ride.wait}m):</span><b>+Rs.${waitC}</b></div>`;
         if(ride.nightUsed && ride.manualFare === 0) rows += `<div class="r-row"><span>Night(${SETTINGS.nightPercent}%):</span><b>+${Math.round(ride.fare - (sub + waitC - ride.disc))}</b></div>`;
         if(ride.disc > 0) rows += `<div class="r-row"><span>Discount:</span><b>-Rs.${ride.disc}</b></div>`;
-        rows += `<div class="r-row"><span>Mode:</span><b>${ride.mode}</b></div><div class="r-row"><span>Payment:</span><b>${ride.payment.method} ${ride.payment.detail}</b></div>`;
-        document.getElementById('receipt-body').innerHTML = rows; document.getElementById('receipt-total').innerHTML = "Rs. " + ride.fare; document.getElementById('receipt-header').innerText = SETTINGS.receiptName;
-        document.getElementById('receipt-qr').innerHTML = ""; new QRCode(document.getElementById("receipt-qr"), { text: ride.id, width: 70, height: 70 });
+        rows += `<div class="r-row"><span>Mode:</span><b>${ride.mode}</b></div>
+                 <div class="r-row"><span>Payment:</span><b>${ride.payment.method} ${ride.payment.detail}</b></div>`;
+        
+        document.getElementById('receipt-body').innerHTML = rows; 
+        document.getElementById('receipt-total').innerHTML = "Rs. " + ride.fare; 
+        document.getElementById('receipt-header').innerText = SETTINGS.receiptName;
+        
+        // QR Code with all receipt details
+        let qrText = `${SETTINGS.appName}\n`;
+        qrText += `Receipt: ${ride.id}\n`;
+        qrText += `Date: ${new Date(ride.time).toLocaleString()}\n`;
+        qrText += `Mobile: ${ride.mobile}\n`;
+        qrText += `From: ${ride.from}\n`;
+        qrText += `To: ${ride.to}\n`;
+        qrText += `Distance: ${ride.km.toFixed(2)} km\n`;
+        qrText += `Fare: Rs. ${ride.fare}\n`;
+        qrText += `Payment: ${ride.payment.method}\n`;
+        if(isDuplicate) qrText += `[DUPLICATE COPY]\n`;
+        qrText += `Thank you!`;
+        
+        document.getElementById('receipt-qr').innerHTML = ""; 
+        new QRCode(document.getElementById("receipt-qr"), { text: qrText, width: 70, height: 70 });
         document.getElementById('receiptModal').style.display = "flex";
+    }
+    
+    // ========== EMAIL WITH ATTACHMENT (PDF/Image) ==========
+    async function sendEmailWithAttachment() {
+        try {
+            const receiptElement = document.getElementById('receipt-view');
+            const btn = event.target;
+            const originalText = btn.innerText;
+            btn.innerText = "📧 Generating..."; 
+            btn.disabled = true;
+            
+            // Capture receipt as canvas
+            const canvas = await html2canvas(receiptElement, { scale: 2, backgroundColor: '#ffffff', logging: false });
+            const { jsPDF } = window.jspdf;
+            
+            // Create PDF
+            const pdf = new jsPDF({ unit: 'mm', format: 'a6', orientation: 'portrait' });
+            const imgWidth = 100;
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+            pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 2.5, 5, imgWidth, imgHeight);
+            
+            // Get PDF as Blob
+            const pdfBlob = pdf.output('blob');
+            const pdfFile = new File([pdfBlob], `receipt_${currentRID}.pdf`, { type: 'application/pdf' });
+            
+            const emailSubject = `Taxi Receipt ${currentRID}`;
+            const emailBody = `Thank you for riding with us!\n\nReceipt ID: ${currentRID}\nTotal: ${document.getElementById('receipt-total')?.innerText || ''}\nDate: ${new Date().toLocaleString()}\n\n(Receipt PDF attached)`;
+            
+            // Method 1: Try Web Share API (Mobile)
+            if (navigator.share && navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
+                await navigator.share({
+                    title: 'Taxi Receipt',
+                    text: `Receipt: ${currentRID}`,
+                    files: [pdfFile]
+                });
+            } 
+            // Method 2: Create data URL and open email with attachment info
+            else {
+                // Convert PDF to base64 data URL
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const pdfDataUrl = e.target.result;
+                    // Create a temporary download
+                    const downloadLink = document.createElement('a');
+                    downloadLink.href = pdfDataUrl;
+                    downloadLink.download = `receipt_${currentRID}.pdf`;
+                    downloadLink.click();
+                    
+                    // Open email client
+                    setTimeout(() => {
+                        window.location.href = `mailto:?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody + "\n\nPDF has been downloaded separately.")}`;
+                    }, 500);
+                    
+                    alert("✅ PDF downloaded! Please attach it to your email.");
+                };
+                reader.readAsDataURL(pdfBlob);
+            }
+            
+            btn.innerText = originalText;
+            btn.disabled = false;
+        } catch(e) {
+            console.error("Email error:", e);
+            // Fallback: just open email client
+            window.location.href = `mailto:?subject=Taxi Receipt ${currentRID}&body=Receipt ID: ${currentRID}%0D%0ATotal: ${document.getElementById('receipt-total')?.innerText || ''}`;
+            alert("Email client opened. Receipt PDF has been saved to downloads.");
+            downloadReceiptPDF();
+        }
+    }
+    
+    // ========== NIGHT CHARGE TOGGLE ==========
+    function toggleNightCharge() { 
+        nightActive = !nightActive; 
+        const btn = document.getElementById('nightBtn'); 
+        if(nightActive) { 
+            btn.innerHTML = '🌙 NIGHT ON'; 
+            btn.classList.add('night-active'); 
+        } else { 
+            btn.innerHTML = '🌙 NIGHT OFF'; 
+            btn.classList.remove('night-active'); 
+        } 
+        updateDisplay(); 
     }
     
     // ========== REPORTS ==========
@@ -621,17 +694,51 @@
     }
     
     // ========== SHARE FUNCTIONS ==========
-    async function shareWA() { try { const el = document.getElementById('receipt-view'); const canvas = await html2canvas(el, { scale: 2 }); const blob = await new Promise(r => canvas.toBlob(r, 'image/png')); const file = new File([blob], `receipt_${currentRID}.png`, { type: 'image/png' }); if(navigator.share) await navigator.share({ files: [file] }); else { const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `receipt_${currentRID}.png`; a.click(); alert("Image saved!"); } } catch(e) { downloadReceiptPDF(); } }
+    async function shareWA() { 
+        try { 
+            const el = document.getElementById('receipt-view'); 
+            const canvas = await html2canvas(el, { scale: 2 }); 
+            const blob = await new Promise(r => canvas.toBlob(r, 'image/png')); 
+            const file = new File([blob], `receipt_${currentRID}.png`, { type: 'image/png' }); 
+            if(navigator.share) await navigator.share({ files: [file] }); 
+            else { const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `receipt_${currentRID}.png`; a.click(); alert("Image saved!"); } 
+        } catch(e) { downloadReceiptPDF(); } 
+    }
     
-    async function sendEmailWithPDF() { try { const el = document.getElementById('receipt-view'); const canvas = await html2canvas(el, { scale: 2 }); const { jsPDF } = window.jspdf; const pdf = new jsPDF({ unit: 'mm', format: 'a6' }); pdf.addImage(canvas.toDataURL(), 'PNG', 2.5, 5, 100, (canvas.height*100)/canvas.width); const blob = pdf.output('blob'); if(navigator.share) await navigator.share({ files: [new File([blob], `receipt_${currentRID}.pdf`)] }); else { const url = URL.createObjectURL(blob); window.open(url); setTimeout(() => window.location.href = `mailto:?subject=Receipt ${currentRID}`, 500); } } catch(e) { downloadReceiptPDF(); } }
-    
-    async function downloadReceiptPDF() { const { jsPDF } = window.jspdf; const el = document.getElementById('receipt-view'); const canvas = await html2canvas(el, { scale: 2 }); const pdf = new jsPDF({ unit: 'mm', format: 'a6' }); pdf.addImage(canvas.toDataURL(), 'PNG', 2.5, 5, 100, (canvas.height*100)/canvas.width); pdf.save(`${currentRID}.pdf`); }
+    async function downloadReceiptPDF() { 
+        const { jsPDF } = window.jspdf; 
+        const el = document.getElementById('receipt-view'); 
+        const canvas = await html2canvas(el, { scale: 2 }); 
+        const pdf = new jsPDF({ unit: 'mm', format: 'a6' }); 
+        pdf.addImage(canvas.toDataURL(), 'PNG', 2.5, 5, 100, (canvas.height*100)/canvas.width); 
+        pdf.save(`${currentRID}.pdf`); 
+    }
     
     async function printViaBluetooth() { if(!navigator.bluetooth) { alert("Use Chrome on Android"); return; } try { const device = await navigator.bluetooth.requestDevice({ acceptAllDevices: true }); const server = await device.gatt.connect(); alert("Connected! (Printing demo)"); } catch(e) { alert("Bluetooth failed"); } }
     
-    function toggleNightCharge() { nightActive = !nightActive; const btn = document.getElementById('nightTopBtn'); if(nightActive) { btn.innerHTML = '🌙 ON'; btn.classList.add('night-top-active'); } else { btn.innerHTML = '🌙 OFF'; btn.classList.remove('night-top-active'); } updateDisplay(); }
-    
-    function resetToNew() { if(sTime && !confirm("Reset? Loss data?")) return; if(watchId) navigator.geolocation.clearWatch(watchId); sTime = null; totalKm = 0; lastLat = null; lastLon = null; document.getElementById('startBtn').innerHTML = "START RIDE"; document.getElementById('startBtn').classList.remove('btn-active-anim'); document.getElementById('startBtn').disabled = false; document.getElementById('startBtn').classList.remove('btn-start-disabled'); document.getElementById('start-loc').value = ''; document.getElementById('end-loc').value = ''; document.getElementById('mobile').value = ''; document.getElementById('manual-fare').value = ''; document.getElementById('discount-input').value = ''; document.getElementById('wait-select').value = '0'; document.getElementById('manual-km-input').value = '0'; updateDisplay(); if(currentMode === 'auto') { document.getElementById('auto-location-card').style.backgroundColor = "#f0f2f5"; getCurrentLocationAddress(); } if(currentMode !== 'manual') startGPS(); else { gpsReady = true; document.getElementById('startBtn').disabled = false; } }
+    function resetToNew() { 
+        if(sTime && !confirm("Reset will lose current ride data. Continue?")) return; 
+        if(watchId) navigator.geolocation.clearWatch(watchId); 
+        sTime = null; totalKm = 0; lastLat = null; lastLon = null; 
+        document.getElementById('startBtn').innerHTML = "START RIDE"; 
+        document.getElementById('startBtn').classList.remove('btn-active-anim'); 
+        document.getElementById('startBtn').disabled = false; 
+        document.getElementById('startBtn').classList.remove('btn-start-disabled'); 
+        document.getElementById('start-loc').value = ''; 
+        document.getElementById('end-loc').value = ''; 
+        document.getElementById('mobile').value = ''; 
+        document.getElementById('manual-fare').value = ''; 
+        document.getElementById('discount-input').value = ''; 
+        document.getElementById('wait-select').value = '0'; 
+        document.getElementById('manual-km-input').value = '0'; 
+        updateDisplay(); 
+        if(currentMode === 'auto') { 
+            document.getElementById('auto-location-card').style.backgroundColor = "#f0f2f5"; 
+            getCurrentLocationAddress(); 
+        } 
+        if(currentMode !== 'manual') startGPS(); 
+        else { gpsReady = true; document.getElementById('startBtn').disabled = false; } 
+    }
     
     // ========== SETTINGS ==========
     function loadSettings() {
@@ -663,14 +770,43 @@
     }
     
     // ========== HISTORY ==========
-    function updateHistoryList() { const rides = JSON.parse(localStorage.getItem('rides')||'[]'); const c = document.getElementById('history-list'); if(!rides.length) { c.innerHTML = "<p style='text-align:center;padding:20px;'>No rides</p>"; return; } c.innerHTML = rides.slice().reverse().map((r,i) => `<div class="history-item"><div style="display:flex; justify-content:space-between;"><b>${r.id}</b><button class="btn-reprint" onclick="reprintRide(${rides.length-1-i})">VIEW</button></div><small>${new Date(r.time).toLocaleString()}</small><br><small>${r.from.substring(0,30)} → ${r.to.substring(0,30)}</small><div><strong>Rs.${r.fare}</strong> | ${r.km.toFixed(1)}km | ${r.payment?.method||'Cash'}</div></div>`).join(''); }
-    function reprintRide(i) { const rides = JSON.parse(localStorage.getItem('rides')||'[]'); if(rides[i]) showReceipt(rides[i]); closeM('history-modal'); }
-    function updateEarningsChart() { const rides = JSON.parse(localStorage.getItem('rides')||'[]'); const d = [0,0,0,0,0,0,0]; rides.forEach(r => d[new Date(r.time).getDay()] += r.fare); if(window.mChart) window.mChart.destroy(); window.mChart = new Chart(document.getElementById('earningsChart'), { type: 'bar', data: { labels: ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'], datasets: [{ data: d, backgroundColor: '#1a4a9e' }] } }); const today = rides.filter(r => new Date(r.time).toDateString() === new Date().toDateString()).reduce((a,b)=>a+b.fare,0); const total = rides.reduce((a,b)=>a+b.fare,0); document.getElementById('stat-today').innerHTML = "Rs." + today; document.getElementById('stat-total').innerHTML = "Rs." + total; }
-    function downloadCSV() { const rides = JSON.parse(localStorage.getItem('rides')||'[]'); let csv = "Date,ID,Route,Distance,Fare,Payment\n" + rides.map(r => `${new Date(r.time).toLocaleDateString()},${r.id},${r.from}-${r.to},${r.km.toFixed(2)},${r.fare},${r.payment?.method||'Cash'}`).join("\n"); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv])); a.download = 'rides.csv'; a.click(); }
+    function updateHistoryList() { 
+        const rides = JSON.parse(localStorage.getItem('rides')||'[]'); 
+        const c = document.getElementById('history-list'); 
+        if(!rides.length) { c.innerHTML = "<p style='text-align:center;padding:20px;'>No rides</p>"; return; } 
+        c.innerHTML = rides.slice().reverse().map((r,i) => `<div class="history-item"><div style="display:flex; justify-content:space-between;"><b>${r.id}</b><button class="btn-reprint" onclick="reprintRide(${rides.length-1-i})">📄 VIEW</button></div><small>${new Date(r.time).toLocaleString()}</small><br><small>${r.from.substring(0,30)} → ${r.to.substring(0,30)}</small><div><strong>Rs.${r.fare}</strong> | ${r.km.toFixed(1)}km | ${r.payment?.method||'Cash'}</div></div>`).join(''); 
+    }
+    
+    function reprintRide(i) { 
+        const rides = JSON.parse(localStorage.getItem('rides')||'[]'); 
+        if(rides[i]) {
+            isDuplicateView = true;
+            showReceipt(rides[i], true); // Show with DUPLICATE badge
+            closeM('history-modal');
+        } 
+    }
+    
+    function updateEarningsChart() { 
+        const rides = JSON.parse(localStorage.getItem('rides')||'[]'); 
+        const d = [0,0,0,0,0,0,0]; 
+        rides.forEach(r => d[new Date(r.time).getDay()] += r.fare); 
+        if(window.mChart) window.mChart.destroy(); 
+        window.mChart = new Chart(document.getElementById('earningsChart'), { type: 'bar', data: { labels: ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'], datasets: [{ data: d, backgroundColor: '#1a4a9e' }] } }); 
+        const today = rides.filter(r => new Date(r.time).toDateString() === new Date().toDateString()).reduce((a,b)=>a+b.fare,0); 
+        const total = rides.reduce((a,b)=>a+b.fare,0); 
+        document.getElementById('stat-today').innerHTML = "Rs." + today; 
+        document.getElementById('stat-total').innerHTML = "Rs." + total; 
+    }
+    
+    function downloadCSV() { 
+        const rides = JSON.parse(localStorage.getItem('rides')||'[]'); 
+        let csv = "Date,ID,Route,Distance,Fare,Payment\n" + rides.map(r => `${new Date(r.time).toLocaleDateString()},${r.id},${r.from}-${r.to},${r.km.toFixed(2)},${r.fare},${r.payment?.method||'Cash'}`).join("\n"); 
+        const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv])); a.download = 'rides.csv'; a.click(); 
+    }
     
     function openLogin() { document.getElementById('admin-pass').value = ''; document.getElementById('login-modal').style.display = 'flex'; }
     function checkLogin() { if(document.getElementById('admin-pass').value === SETTINGS.password) { closeM('login-modal'); document.getElementById('settings-modal').style.display = 'flex'; } else alert("Wrong! Default: 1234"); }
-    function closeM(id) { document.getElementById(id).style.display = 'none'; }
+    function closeM(id) { document.getElementById(id).style.display = 'none'; isDuplicateView = false; }
     function backToS(id) { closeM(id); document.getElementById('settings-modal').style.display = 'flex'; }
     function openPanel(id) { closeM('settings-modal'); document.getElementById(id).style.display = 'flex'; if(id === 'income-modal') updateEarningsChart(); if(id === 'history-modal') updateHistoryList(); if(id === 'report-modal') updateReportDisplay(); }
     
