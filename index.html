@@ -63,12 +63,16 @@
         .modal-content { background: white; width: 90%; max-width: 380px; border-radius: 40px; padding: 25px; position: relative; max-height: 85vh; overflow-y: auto; }
         .close-circle { position: absolute; top: 15px; right: 15px; background: #eee; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; }
         
-        .receipt-print { width: 58mm; max-width: 58mm; margin: 0 auto; padding: 2mm 3mm; font-family: 'Courier New', monospace; font-size: 9pt; line-height: 1.2; background: white; }
+        .receipt-print { width: 58mm; max-width: 58mm; margin: 0 auto; padding: 2mm 3mm; font-family: 'Courier New', monospace; font-size: 9pt; line-height: 1.2; background: white; position: relative; }
         .r-header { background: #000; color: #fff; padding: 5px; text-align: center; font-size: 11pt; font-weight: bold; margin-bottom: 8px; }
         .r-row { display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px dotted #ccc; font-size: 8pt; }
         .r-total { background: #1a4a9e; color: white; padding: 6px; text-align: center; margin: 6px 0; font-size: 10pt; font-weight: bold; }
+        .r-words { text-align: center; font-size: 7pt; color: #555; margin: 5px 0; font-style: italic; }
         .r-divider { text-align: center; padding: 3px 0; font-size: 8pt; }
         .duplicate-badge { background: #e74c3c; color: white; text-align: center; padding: 3px; font-size: 8pt; margin-bottom: 5px; border-radius: 3px; }
+        .receipt-seal { position: absolute; bottom: 5px; right: 5px; width: 35px; height: 35px; border-radius: 50%; border: 2px solid #e74c3c; color: #e74c3c; font-size: 8px; font-weight: bold; display: flex; align-items: center; justify-content: center; text-align: center; background: rgba(255,255,255,0.8); transform: rotate(-15deg); pointer-events: none; }
+        .receipt-seal:before { content: "✓ PAID"; font-size: 7px; font-weight: bold; }
+        
         .receipt-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; }
         .btn-wa, .btn-gm, .btn-pdf, .btn-print { padding: 12px; border-radius: 15px; border: none; font-weight: bold; cursor: pointer; }
         .btn-wa { background: #25D366; color: white; }
@@ -176,8 +180,8 @@
     </div>
 
     <div class="btn-main-grid">
-        <button class="btn-start" id="startBtn" onclick="confirmStart()">START RIDE</button>
-        <button class="btn-end" onclick="confirmEnd()">END RIDE</button>
+        <button class="btn-start" id="startBtn" onclick="startRide()">START RIDE</button>
+        <button class="btn-end" onclick="endRide()">END RIDE</button>
     </div>
 
     <div class="fare-card" style="margin-top: 15px;">
@@ -261,12 +265,14 @@
 <div id="receiptModal" class="modal">
     <div class="modal-content" style="max-width: 400px;">
         <div class="close-circle" onclick="closeM('receiptModal')">✕</div>
-        <div id="receipt-view" class="receipt-print">
+        <div id="receipt-view" class="receipt-print" style="position: relative;">
             <div class="r-header" id="receipt-header">TAXI RECEIPT</div>
             <div id="receipt-body"></div>
             <div class="r-total">TOTAL: Rs.<span id="receipt-total"></span></div>
+            <div class="r-words" id="receipt-words"></div>
             <div id="receipt-qr" style="display:flex; justify-content:center; margin:8px 0;"></div>
             <div class="r-divider">Thank you! 🚕</div>
+            <div class="receipt-seal"></div>
         </div>
         <div class="receipt-btns">
             <button class="btn-wa" onclick="shareWA()">📱 WHATSAPP</button>
@@ -282,15 +288,39 @@
 <div id="login-modal" class="modal"><div class="modal-content"><h3>🔐 Admin Login</h3><input type="password" id="admin-pass" placeholder="Password"><button style="background:var(--primary); width:100%; margin-top:10px; padding:12px; border:none; border-radius:20px; color:white;" onclick="checkLogin()">LOGIN</button><button style="background:#ccc; width:100%; margin-top:5px; padding:12px; border:none; border-radius:20px;" onclick="closeM('login-modal')">CANCEL</button></div></div>
 
 <script>
+    // ========== NUMBER TO WORDS FUNCTION ==========
+    function numberToWords(num) {
+        if (num === 0) return "Zero";
+        
+        const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine',
+                      'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+        const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+        
+        function convert(n) {
+            if (n < 20) return ones[n];
+            if (n < 100) return tens[Math.floor(n / 10)] + (n % 10 ? " " + ones[n % 10] : "");
+            if (n < 1000) return ones[Math.floor(n / 100)] + " Hundred" + (n % 100 ? " " + convert(n % 100) : "");
+            if (n < 100000) return convert(Math.floor(n / 1000)) + " Thousand" + (n % 1000 ? " " + convert(n % 1000) : "");
+            if (n < 10000000) return convert(Math.floor(n / 100000)) + " Lakh" + (n % 100000 ? " " + convert(n % 100000) : "");
+            return convert(Math.floor(n / 10000000)) + " Crore" + (n % 10000000 ? " " + convert(n % 10000000) : "");
+        }
+        
+        let rupees = Math.floor(num);
+        let paisa = Math.round((num - rupees) * 100);
+        let result = convert(rupees) + " Rupees";
+        if (paisa > 0) result += " and " + convert(paisa) + " Cents";
+        return result + " Only";
+    }
+    
     // ========== GLOBAL VARIABLES ==========
-    let sTime = null, watchId = null, totalKm = 0;
+    let sTime = null, watchId = null, totalMeters = 0;
     let lastLat = null, lastLon = null, currentRID = "";
     let nightActive = false, gpsReady = false;
     let currentMode = "auto";
     let pendingRideData = null, selectedMethod = "cash";
     let currentLocationAddress = "", currentLocationLat = null, currentLocationLon = null;
     let startLocationAddress = "", endLocationAddress = "";
-    let isDuplicateView = false; // For duplicate receipt view from history
+    let isDuplicateView = false;
     
     let SETTINGS = {
         base: 100, rate: 80, waitRate: 5, nightPercent: 10,
@@ -299,6 +329,115 @@
     };
     let currentReportType = "daily";
 
+    // ========== DISTANCE CALCULATION ==========
+    function calculateDistanceMeters(lat1, lon1, lat2, lon2) {
+        const R = 6371000;
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                  Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                  Math.sin(dLon/2) * Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return R * c;
+    }
+    
+    function updateDisplay() {
+        let km = totalMeters / 1000;
+        document.getElementById('disp-km').innerHTML = km.toFixed(2);
+        document.getElementById('disp-fare').innerHTML = "Rs. " + calcFare();
+        if(currentMode === 'manual') document.getElementById('manual-km-input').value = km.toFixed(2);
+        const ni = document.getElementById('night-indicator');
+        if(ni) {
+            if(nightActive && !document.getElementById('manual-fare').value) ni.style.display = 'block';
+            else ni.style.display = 'none';
+        }
+    }
+    
+    function calcFare() {
+        let manualFare = parseInt(document.getElementById('manual-fare').value)||0, 
+            disc = parseInt(document.getElementById('discount-input').value)||0, 
+            wait = parseInt(document.getElementById('wait-select').value), 
+            waitCharge = wait * SETTINGS.waitRate;
+        let km = totalMeters / 1000;
+        let total = manualFare > 0 ? manualFare + waitCharge - disc : SETTINGS.base + (Math.max(0, km - 1) * SETTINGS.rate) + waitCharge - disc;
+        if(nightActive && manualFare === 0) total = total + (total * SETTINGS.nightPercent / 100);
+        return Math.max(0, Math.round(total));
+    }
+    
+    // ========== GPS TRACKING ==========
+    function startGPS() {
+        const statusDiv = document.getElementById('gps-status');
+        if(!navigator.geolocation) {
+            statusDiv.className = 'gps-status gps-error';
+            statusDiv.innerHTML = '❌ GPS not supported';
+            return;
+        }
+        statusDiv.className = 'gps-status gps-warning';
+        statusDiv.innerHTML = '📍 Requesting GPS permission...';
+        
+        navigator.geolocation.getCurrentPosition(
+            function(pos) {
+                const accuracy = pos.coords.accuracy;
+                lastLat = pos.coords.latitude;
+                lastLon = pos.coords.longitude;
+                if(accuracy < 50) {
+                    gpsReady = true;
+                    statusDiv.className = 'gps-status gps-ready';
+                    statusDiv.innerHTML = `✅ GPS Ready (${accuracy.toFixed(0)}m)`;
+                    document.getElementById('startBtn').disabled = false;
+                    document.getElementById('startBtn').classList.remove('btn-start-disabled');
+                    if(currentMode === 'auto') reverseGeocode(lastLat, lastLon);
+                } else if(accuracy < 100) {
+                    gpsReady = true;
+                    statusDiv.className = 'gps-status gps-warning';
+                    statusDiv.innerHTML = `⚠️ GPS Weak (${accuracy.toFixed(0)}m)`;
+                    document.getElementById('startBtn').disabled = false;
+                    document.getElementById('startBtn').classList.remove('btn-start-disabled');
+                } else {
+                    gpsReady = false;
+                    statusDiv.className = 'gps-status gps-warning';
+                    statusDiv.innerHTML = `⚠️ Poor GPS (${accuracy.toFixed(0)}m). Waiting...`;
+                    document.getElementById('startBtn').disabled = true;
+                    setTimeout(startGPS, 3000);
+                }
+            },
+            function(err) {
+                let msg = err.code === 1 ? "Permission DENIED! Click 🔒 → Location → Allow" : (err.code === 2 ? "Turn ON GPS." : "GPS timeout.");
+                statusDiv.className = 'gps-status gps-error';
+                statusDiv.innerHTML = `❌ ${msg}`;
+                document.getElementById('startBtn').disabled = true;
+                document.getElementById('startBtn').classList.add('btn-start-disabled');
+                if(currentMode !== 'manual') setTimeout(startGPS, 5000);
+            },
+            { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+        );
+    }
+    
+    function trackRide() {
+        if(watchId) navigator.geolocation.clearWatch(watchId);
+        watchId = navigator.geolocation.watchPosition(
+            function(pos) {
+                if(!sTime) return;
+                const lat = pos.coords.latitude;
+                const lon = pos.coords.longitude;
+                const accuracy = pos.coords.accuracy;
+                
+                if(lastLat !== null && lastLon !== null && accuracy < 50) {
+                    let distance = calculateDistanceMeters(lastLat, lastLon, lat, lon);
+                    if(distance > 3 && distance < 200) {
+                        totalMeters += distance;
+                        updateDisplay();
+                        document.getElementById('gps-status').innerHTML = `📍 Moving | ${(totalMeters/1000).toFixed(2)} km`;
+                    }
+                }
+                lastLat = lat;
+                lastLon = lon;
+            },
+            function(err) { console.log("GPS watch error:", err); },
+            { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 }
+        );
+    }
+    
     // ========== MODE SELECTION ==========
     function setMode(mode) {
         currentMode = mode;
@@ -370,118 +509,130 @@
     function manualAddDistance(km) { 
         if(!sTime) { alert("Start ride first!"); return; }
         if(currentMode !== 'manual') { alert("Switch to Manual KM Mode!"); return; }
-        let newKm = totalKm + km; if(newKm < 0) newKm = 0; 
-        totalKm = parseFloat(newKm.toFixed(2)); 
-        document.getElementById('manual-km-input').value = totalKm; updateDisplay(); 
+        let newMeters = totalMeters + (km * 1000);
+        if(newMeters < 0) newMeters = 0; 
+        totalMeters = newMeters; 
+        document.getElementById('manual-km-input').value = (totalMeters/1000).toFixed(2); 
+        updateDisplay(); 
     }
     
     function setManualDistance() { 
         if(!sTime) { alert("Start ride first!"); return; }
         if(currentMode !== 'manual') { alert("Switch to Manual KM Mode!"); return; }
         let val = parseFloat(document.getElementById('manual-km-input').value); 
-        if(!isNaN(val) && val >= 0) { totalKm = parseFloat(val.toFixed(2)); updateDisplay(); } 
-    }
-    
-    // ========== GPS FUNCTIONS ==========
-    function startGPS() {
-        const statusDiv = document.getElementById('gps-status');
-        if(!navigator.geolocation) { statusDiv.className = 'gps-status gps-error'; statusDiv.innerHTML = '❌ GPS not supported'; return; }
-        statusDiv.className = 'gps-status gps-warning'; statusDiv.innerHTML = '📍 Requesting GPS...';
-        navigator.geolocation.getCurrentPosition(
-            (pos) => {
-                const acc = pos.coords.accuracy;
-                lastLat = pos.coords.latitude; lastLon = pos.coords.longitude;
-                if(acc < 50) { gpsReady = true; statusDiv.className = 'gps-status gps-ready'; statusDiv.innerHTML = `✅ GPS Ready (${acc.toFixed(0)}m)`; document.getElementById('startBtn').disabled = false; document.getElementById('startBtn').classList.remove('btn-start-disabled');
-                    if(currentMode === 'auto') reverseGeocode(lastLat, lastLon);
-                } else if(acc < 100) { gpsReady = true; statusDiv.className = 'gps-status gps-warning'; statusDiv.innerHTML = `⚠️ Weak (${acc.toFixed(0)}m)`; document.getElementById('startBtn').disabled = false;
-                } else { gpsReady = false; statusDiv.className = 'gps-status gps-warning'; statusDiv.innerHTML = `⚠️ Poor GPS...`; document.getElementById('startBtn').disabled = true; setTimeout(startGPS, 3000); }
-            }, (err) => { statusDiv.className = 'gps-status gps-error'; statusDiv.innerHTML = '❌ Location denied! Tap 🔒 → Allow'; document.getElementById('startBtn').disabled = true; if(currentMode !== 'manual') setTimeout(startGPS, 5000); },
-            { enableHighAccuracy: true, timeout: 15000 }
-        );
-    }
-    
-    function calculateDistance(lat1, lon1, lat2, lon2) { const R = 6371; const dLat = (lat2-lat1)*Math.PI/180, dLon = (lon2-lon1)*Math.PI/180; const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2; return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); }
-    
-    function trackRide() {
-        if(watchId) navigator.geolocation.clearWatch(watchId);
-        watchId = navigator.geolocation.watchPosition(
-            (pos) => { if(!sTime) return; const lat = pos.coords.latitude, lon = pos.coords.longitude, acc = pos.coords.accuracy; if(lastLat && lastLon && acc < 50) { const d = calculateDistance(lastLat, lastLon, lat, lon); if(d > 0.005 && d < 0.3) { totalKm += d; updateDisplay(); document.getElementById('gps-status').innerHTML = `📍 Moving | ${totalKm.toFixed(2)} km`; } } lastLat = lat; lastLon = lon; },
-            null, { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 }
-        );
+        if(!isNaN(val) && val >= 0) { 
+            totalMeters = val * 1000;
+            updateDisplay(); 
+        } 
     }
     
     // ========== RIDE FUNCTIONS ==========
-    function confirmStart() {
-        if(sTime) { alert("Active!"); return; }
-        if(currentMode === 'auto') { if(!currentLocationAddress) { alert("Wait for GPS!"); return; } }
-        else if(currentMode === 'gps') { if(!document.getElementById('start-loc').value.trim() || !document.getElementById('end-loc').value.trim()) { alert("Enter locations!"); return; } if(!gpsReady) { alert("GPS not ready!"); return; } }
-        else { if(!document.getElementById('start-loc').value.trim() || !document.getElementById('end-loc').value.trim()) { alert("Enter locations!"); return; } }
-        if(confirm("Start ride?")) startRide();
-    }
-    
-    function confirmEnd() { if(!sTime) { alert("No active ride!"); return; } if(confirm("End ride?")) { if(watchId) { navigator.geolocation.clearWatch(watchId); watchId = null; } endRideAndOpenPayment(); } }
-    
-    async function startRide() {
+    function startRide() {
+        if(sTime) { alert("Ride already active!"); return; }
+        if(currentMode === 'auto') { 
+            if(!currentLocationAddress) { alert("Wait for GPS!"); return; } 
+        } else if(currentMode === 'gps') { 
+            if(!document.getElementById('start-loc').value.trim() || !document.getElementById('end-loc').value.trim()) { 
+                alert("Enter locations!"); return; 
+            } 
+            if(!gpsReady) { alert("GPS not ready!"); return; } 
+        } else { 
+            if(!document.getElementById('start-loc').value.trim() || !document.getElementById('end-loc').value.trim()) { 
+                alert("Enter locations!"); return; 
+            } 
+        }
+        
         sTime = new Date();
         if(currentMode === 'auto') {
-            totalKm = 0; startLocationAddress = currentLocationAddress;
-            if(currentLocationLat && currentLocationLon) { lastLat = currentLocationLat; lastLon = currentLocationLon; }
+            totalMeters = 0;
+            startLocationAddress = currentLocationAddress;
+            if(currentLocationLat && currentLocationLon) {
+                lastLat = currentLocationLat;
+                lastLon = currentLocationLon;
+            }
             document.getElementById('auto-location-card').style.backgroundColor = "#d4edda";
             trackRide();
-        } else if(currentMode === 'gps') { totalKm = 0; lastLat = null; lastLon = null; trackRide(); }
-        else { totalKm = parseFloat(document.getElementById('manual-km-input').value) || 0; }
-        document.getElementById('startBtn').innerHTML = "⏵ ACTIVE"; document.getElementById('startBtn').classList.add('btn-active-anim');
-        document.getElementById('startBtn').disabled = true; document.getElementById('startBtn').classList.add('btn-start-disabled');
+        } else if(currentMode === 'gps') {
+            totalMeters = 0;
+            lastLat = null;
+            lastLon = null;
+            trackRide();
+        } else {
+            totalMeters = (parseFloat(document.getElementById('manual-km-input').value) || 0) * 1000;
+        }
+        document.getElementById('startBtn').innerHTML = "⏵ ACTIVE";
+        document.getElementById('startBtn').classList.add('btn-active-anim');
+        document.getElementById('startBtn').disabled = true;
         updateDisplay();
     }
     
-    async function endRideAndOpenPayment() {
-        document.getElementById('startBtn').innerHTML = "START RIDE"; document.getElementById('startBtn').classList.remove('btn-active-anim');
-        document.getElementById('startBtn').disabled = false; document.getElementById('startBtn').classList.remove('btn-start-disabled');
+    function endRide() {
+        if(!sTime) { alert("No active ride!"); return; }
+        if(watchId) { navigator.geolocation.clearWatch(watchId); watchId = null; }
+        
+        document.getElementById('startBtn').innerHTML = "START RIDE";
+        document.getElementById('startBtn').classList.remove('btn-active-anim');
+        document.getElementById('startBtn').disabled = false;
+        
         let from = "", to = "";
         if(currentMode === 'auto') {
             from = startLocationAddress;
-            await getCurrentLocationForEnd();
             to = currentLocationAddress;
             document.getElementById('auto-location-card').style.backgroundColor = "#f0f2f5";
-        } else { from = document.getElementById('start-loc').value; to = document.getElementById('end-loc').value; }
-        const fare = calcFare(); currentRID = generateReceiptID();
-        pendingRideData = { id: currentRID, fare: fare, km: totalKm, from: from, to: to, mobile: document.getElementById('mobile').value || "N/A", wait: parseInt(document.getElementById('wait-select').value), disc: parseInt(document.getElementById('discount-input').value)||0, manualFare: parseInt(document.getElementById('manual-fare').value)||0, nightUsed: nightActive, mode: currentMode === 'auto' ? "Auto" : (currentMode === 'gps' ? "GPS" : "Manual"), time: Date.now() };
+        } else {
+            from = document.getElementById('start-loc').value;
+            to = document.getElementById('end-loc').value;
+        }
+        
+        const fare = calcFare();
+        currentRID = generateReceiptID();
+        let km = totalMeters / 1000;
+        
+        pendingRideData = {
+            id: currentRID, fare: fare, km: km,
+            from: from, to: to,
+            mobile: document.getElementById('mobile').value || "N/A",
+            wait: parseInt(document.getElementById('wait-select').value),
+            disc: parseInt(document.getElementById('discount-input').value)||0,
+            manualFare: parseInt(document.getElementById('manual-fare').value)||0,
+            nightUsed: nightActive,
+            mode: currentMode === 'auto' ? "Auto" : (currentMode === 'gps' ? "GPS" : "Manual"),
+            time: Date.now()
+        };
         openPaymentPopup();
     }
     
-    function getCurrentLocationForEnd() { return new Promise(resolve => { if(navigator.geolocation) { navigator.geolocation.getCurrentPosition(async (pos) => { currentLocationLat = pos.coords.latitude; currentLocationLon = pos.coords.longitude; await reverseGeocodeForEnd(currentLocationLat, currentLocationLon); resolve(); }, () => resolve()); } else resolve(); }); }
-    
-    function calcFare() {
-        let manualFare = parseInt(document.getElementById('manual-fare').value)||0, disc = parseInt(document.getElementById('discount-input').value)||0, wait = parseInt(document.getElementById('wait-select').value), waitC = wait * SETTINGS.waitRate;
-        let total = manualFare > 0 ? manualFare + waitC - disc : SETTINGS.base + (Math.max(0, totalKm - 1) * SETTINGS.rate) + waitC - disc;
-        if(nightActive && manualFare === 0) total = total + (total * SETTINGS.nightPercent / 100);
-        return Math.max(0, Math.round(total));
+    function generateReceiptID() {
+        const n = new Date(), y = n.getFullYear(), m = n.getMonth();
+        const fy = (m >= 3) ? y : y - 1;
+        let c = parseInt(localStorage.getItem(`cnt_${fy}`)||"0")+1;
+        localStorage.setItem(`cnt_${fy}`, c);
+        return `${fy.toString().slice(-2)}${n.toLocaleString('en',{month:'short'}).toUpperCase()}-${c.toString().padStart(8,'0')}`;
     }
-    
-    function updateDisplay() { document.getElementById('disp-km').innerHTML = totalKm.toFixed(2); document.getElementById('disp-fare').innerHTML = "Rs. " + calcFare(); if(currentMode === 'manual') document.getElementById('manual-km-input').value = totalKm.toFixed(2); const ni = document.getElementById('night-indicator'); if(ni) { if(nightActive && !document.getElementById('manual-fare').value) ni.style.display = 'block'; else ni.style.display = 'none'; } }
-    
-    function generateReceiptID() { const n = new Date(), y = n.getFullYear(), m = n.getMonth(), fy = (m >= 3) ? y : y - 1; let c = parseInt(localStorage.getItem(`cnt_${fy}`)||"0")+1; localStorage.setItem(`cnt_${fy}`, c); return `${fy.toString().slice(-2)}${n.toLocaleString('en',{month:'short'}).toUpperCase()}-${c.toString().padStart(8,'0')}`; }
     
     // ========== PAYMENT ==========
-    function openPaymentPopup() { 
-        selectedMethod = "cash"; 
-        document.querySelectorAll('.payment-method-btn').forEach(btn => btn.classList.remove('selected')); 
-        document.querySelector('.payment-method-btn[data-method="cash"]')?.classList.add('selected'); 
-        document.getElementById('payment-detail-fields').style.display = 'block'; 
-        document.getElementById('cash-fields').style.display = 'block'; 
-        document.getElementById('card-fields').style.display = 'none'; 
-        document.getElementById('mobile-fields').style.display = 'none'; 
+    function openPaymentPopup() {
+        selectedMethod = "cash";
+        document.querySelectorAll('.payment-method-btn').forEach(btn => btn.classList.remove('selected'));
+        document.querySelector('.payment-method-btn[data-method="cash"]')?.classList.add('selected');
+        document.getElementById('payment-detail-fields').style.display = 'block';
+        document.getElementById('cash-fields').style.display = 'block';
+        document.getElementById('card-fields').style.display = 'none';
+        document.getElementById('mobile-fields').style.display = 'none';
         document.getElementById('bank-fields').style.display = 'none';
         document.getElementById('other-fields').style.display = 'none';
-        document.getElementById('payment-popup').style.display = 'flex'; 
+        document.getElementById('payment-popup').style.display = 'flex';
     }
     
-    function selectPaymentMethod(method) { 
-        selectedMethod = method; 
-        document.querySelectorAll('.payment-method-btn').forEach(btn => btn.classList.remove('selected')); 
-        document.querySelector(`.payment-method-btn[data-method="${method}"]`)?.classList.add('selected'); 
-        document.getElementById('cash-fields').style.display = 'none'; document.getElementById('card-fields').style.display = 'none'; document.getElementById('mobile-fields').style.display = 'none'; document.getElementById('bank-fields').style.display = 'none'; document.getElementById('other-fields').style.display = 'none';
+    function selectPaymentMethod(method) {
+        selectedMethod = method;
+        document.querySelectorAll('.payment-method-btn').forEach(btn => btn.classList.remove('selected'));
+        document.querySelector(`.payment-method-btn[data-method="${method}"]`)?.classList.add('selected');
+        document.getElementById('cash-fields').style.display = 'none';
+        document.getElementById('card-fields').style.display = 'none';
+        document.getElementById('mobile-fields').style.display = 'none';
+        document.getElementById('bank-fields').style.display = 'none';
+        document.getElementById('other-fields').style.display = 'none';
         if(method === 'cash') document.getElementById('cash-fields').style.display = 'block';
         if(method === 'card') document.getElementById('card-fields').style.display = 'block';
         if(method === 'mobile') document.getElementById('mobile-fields').style.display = 'block';
@@ -489,8 +640,8 @@
         if(method === 'other') document.getElementById('other-fields').style.display = 'block';
     }
     
-    function getPaymentInfo() { 
-        switch(selectedMethod) { 
+    function getPaymentInfo() {
+        switch(selectedMethod) {
             case 'cash': return { method: 'Cash', detail: '' };
             case 'card': return { method: 'Card', detail: `****${document.getElementById('card-number')?.value||'XXXX'}` };
             case 'mobile': return { method: 'Mobile', detail: `${document.getElementById('mobile-provider')?.value||''} ${document.getElementById('mobile-number')?.value||''}` };
@@ -500,15 +651,23 @@
         }
     }
     
-    function closePaymentPopup() { document.getElementById('payment-popup').style.display = 'none'; pendingRideData = null; }
+    function closePaymentPopup() { document.getElementById('payment-popup').style.display = 'none'; }
     
-    function confirmPaymentAndShowReceipt() { if(!pendingRideData) return; pendingRideData.payment = getPaymentInfo(); saveRide(pendingRideData); showReceipt(pendingRideData, false); closePaymentPopup(); sTime = null; if(currentMode !== 'manual') setTimeout(() => startGPS(), 1000); }
+    function confirmPaymentAndShowReceipt() {
+        if(!pendingRideData) return;
+        pendingRideData.payment = getPaymentInfo();
+        saveRide(pendingRideData);
+        showReceipt(pendingRideData, false);
+        closePaymentPopup();
+        sTime = null;
+        if(currentMode !== 'manual') setTimeout(() => startGPS(), 1000);
+    }
     
     function saveRide(ride) { let list = JSON.parse(localStorage.getItem('rides')||'[]'); list.push(ride); localStorage.setItem('rides', JSON.stringify(list)); }
     
-    // ========== SHOW RECEIPT WITH QR CODE CONTAINING ALL DETAILS ==========
     function showReceipt(ride, isDuplicate) {
-        let sub = (ride.manualFare > 0) ? ride.manualFare : (SETTINGS.base + (Math.max(0, ride.km - 1) * SETTINGS.rate)), waitC = ride.wait * SETTINGS.waitRate;
+        let sub = (ride.manualFare > 0) ? ride.manualFare : (SETTINGS.base + (Math.max(0, ride.km - 1) * SETTINGS.rate));
+        let waitC = ride.wait * SETTINGS.waitRate;
         
         let duplicateHtml = isDuplicate ? '<div class="duplicate-badge">📋 DUPLICATE / COPY</div>' : '';
         
@@ -526,218 +685,100 @@
         rows += `<div class="r-row"><span>Mode:</span><b>${ride.mode}</b></div>
                  <div class="r-row"><span>Payment:</span><b>${ride.payment.method} ${ride.payment.detail}</b></div>`;
         
-        document.getElementById('receipt-body').innerHTML = rows; 
-        document.getElementById('receipt-total').innerHTML = "Rs. " + ride.fare; 
+        document.getElementById('receipt-body').innerHTML = rows;
+        document.getElementById('receipt-total').innerHTML = "Rs. " + ride.fare;
         document.getElementById('receipt-header').innerText = SETTINGS.receiptName;
         
-        // QR Code with all receipt details
-        let qrText = `${SETTINGS.appName}\n`;
-        qrText += `Receipt: ${ride.id}\n`;
-        qrText += `Date: ${new Date(ride.time).toLocaleString()}\n`;
-        qrText += `Mobile: ${ride.mobile}\n`;
-        qrText += `From: ${ride.from}\n`;
-        qrText += `To: ${ride.to}\n`;
-        qrText += `Distance: ${ride.km.toFixed(2)} km\n`;
-        qrText += `Fare: Rs. ${ride.fare}\n`;
-        qrText += `Payment: ${ride.payment.method}\n`;
-        if(isDuplicate) qrText += `[DUPLICATE COPY]\n`;
-        qrText += `Thank you!`;
+        // Amount in words
+        const words = numberToWords(ride.fare);
+        document.getElementById('receipt-words').innerHTML = words;
         
-        document.getElementById('receipt-qr').innerHTML = ""; 
+        // QR Code - Short details only (ID, Date, Fare, Payment)
+        const qrDate = new Date(ride.time).toLocaleDateString();
+        const qrText = `${SETTINGS.appName}\nReceipt: ${ride.id}\nDate: ${qrDate}\nFare: Rs. ${ride.fare}\nPayment: ${ride.payment.method}`;
+        document.getElementById('receipt-qr').innerHTML = "";
         new QRCode(document.getElementById("receipt-qr"), { text: qrText, width: 70, height: 70 });
+        
         document.getElementById('receiptModal').style.display = "flex";
     }
     
-    // ========== EMAIL WITH ATTACHMENT (PDF/Image) ==========
+    // ========== SHARE FUNCTIONS ==========
+    async function shareWA() {
+        try {
+            const el = document.getElementById('receipt-view');
+            const canvas = await html2canvas(el, { scale: 2 });
+            const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
+            const file = new File([blob], `receipt_${currentRID}.png`, { type: 'image/png' });
+            if(navigator.share) await navigator.share({ files: [file] });
+            else { const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `receipt_${currentRID}.png`; a.click(); alert("Image saved!"); }
+        } catch(e) { downloadReceiptPDF(); }
+    }
+    
     async function sendEmailWithAttachment() {
         try {
-            const receiptElement = document.getElementById('receipt-view');
-            const btn = event.target;
-            const originalText = btn.innerText;
-            btn.innerText = "📧 Generating..."; 
-            btn.disabled = true;
-            
-            // Capture receipt as canvas
-            const canvas = await html2canvas(receiptElement, { scale: 2, backgroundColor: '#ffffff', logging: false });
+            const el = document.getElementById('receipt-view');
+            const canvas = await html2canvas(el, { scale: 2 });
             const { jsPDF } = window.jspdf;
-            
-            // Create PDF
             const pdf = new jsPDF({ unit: 'mm', format: 'a6', orientation: 'portrait' });
-            const imgWidth = 100;
-            const imgHeight = (canvas.height * imgWidth) / canvas.width;
-            pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 2.5, 5, imgWidth, imgHeight);
-            
-            // Get PDF as Blob
+            pdf.addImage(canvas.toDataURL(), 'PNG', 2.5, 5, 100, (canvas.height*100)/canvas.width);
             const pdfBlob = pdf.output('blob');
-            const pdfFile = new File([pdfBlob], `receipt_${currentRID}.pdf`, { type: 'application/pdf' });
             
-            const emailSubject = `Taxi Receipt ${currentRID}`;
-            const emailBody = `Thank you for riding with us!\n\nReceipt ID: ${currentRID}\nTotal: ${document.getElementById('receipt-total')?.innerText || ''}\nDate: ${new Date().toLocaleString()}\n\n(Receipt PDF attached)`;
-            
-            // Method 1: Try Web Share API (Mobile)
-            if (navigator.share && navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
-                await navigator.share({
-                    title: 'Taxi Receipt',
-                    text: `Receipt: ${currentRID}`,
-                    files: [pdfFile]
-                });
-            } 
-            // Method 2: Create data URL and open email with attachment info
-            else {
-                // Convert PDF to base64 data URL
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const pdfDataUrl = e.target.result;
-                    // Create a temporary download
-                    const downloadLink = document.createElement('a');
-                    downloadLink.href = pdfDataUrl;
-                    downloadLink.download = `receipt_${currentRID}.pdf`;
-                    downloadLink.click();
-                    
-                    // Open email client
-                    setTimeout(() => {
-                        window.location.href = `mailto:?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody + "\n\nPDF has been downloaded separately.")}`;
-                    }, 500);
-                    
-                    alert("✅ PDF downloaded! Please attach it to your email.");
-                };
-                reader.readAsDataURL(pdfBlob);
+            if(navigator.share && navigator.canShare && navigator.canShare({ files: [new File([pdfBlob], `receipt_${currentRID}.pdf`)] })) {
+                await navigator.share({ files: [new File([pdfBlob], `receipt_${currentRID}.pdf`)] });
+            } else {
+                const url = URL.createObjectURL(pdfBlob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `receipt_${currentRID}.pdf`;
+                a.click();
+                setTimeout(() => {
+                    window.location.href = `mailto:?subject=Taxi Receipt ${currentRID}&body=Receipt ID: ${currentRID}%0D%0ATotal: ${document.getElementById('receipt-total')?.innerText || ''}`;
+                }, 500);
+                alert("PDF saved! Email client opened.");
             }
-            
-            btn.innerText = originalText;
-            btn.disabled = false;
-        } catch(e) {
-            console.error("Email error:", e);
-            // Fallback: just open email client
-            window.location.href = `mailto:?subject=Taxi Receipt ${currentRID}&body=Receipt ID: ${currentRID}%0D%0ATotal: ${document.getElementById('receipt-total')?.innerText || ''}`;
-            alert("Email client opened. Receipt PDF has been saved to downloads.");
-            downloadReceiptPDF();
+        } catch(e) { downloadReceiptPDF(); }
+    }
+    
+    async function downloadReceiptPDF() {
+        const { jsPDF } = window.jspdf;
+        const el = document.getElementById('receipt-view');
+        const canvas = await html2canvas(el, { scale: 2 });
+        const pdf = new jsPDF({ unit: 'mm', format: 'a6' });
+        pdf.addImage(canvas.toDataURL(), 'PNG', 2.5, 5, 100, (canvas.height*100)/canvas.width);
+        pdf.save(`${currentRID}.pdf`);
+    }
+    
+    async function printViaBluetooth() { if(!navigator.bluetooth) { alert("Use Chrome on Android"); return; } try { const device = await navigator.bluetooth.requestDevice({ acceptAllDevices: true }); alert("Connected! (Printing demo)"); } catch(e) { alert("Bluetooth failed"); } }
+    
+    function toggleNightCharge() {
+        nightActive = !nightActive;
+        const btn = document.getElementById('nightBtn');
+        if(nightActive) { btn.innerHTML = '🌙 NIGHT ON'; btn.classList.add('night-active'); }
+        else { btn.innerHTML = '🌙 NIGHT OFF'; btn.classList.remove('night-active'); }
+        updateDisplay();
+    }
+    
+    function resetToNew() {
+        if(sTime && !confirm("Reset will lose current ride data. Continue?")) return;
+        if(watchId) navigator.geolocation.clearWatch(watchId);
+        sTime = null; totalMeters = 0; lastLat = null; lastLon = null;
+        document.getElementById('startBtn').innerHTML = "START RIDE";
+        document.getElementById('startBtn').classList.remove('btn-active-anim');
+        document.getElementById('startBtn').disabled = false;
+        document.getElementById('start-loc').value = '';
+        document.getElementById('end-loc').value = '';
+        document.getElementById('mobile').value = '';
+        document.getElementById('manual-fare').value = '';
+        document.getElementById('discount-input').value = '';
+        document.getElementById('wait-select').value = '0';
+        document.getElementById('manual-km-input').value = '0';
+        updateDisplay();
+        if(currentMode === 'auto') {
+            document.getElementById('auto-location-card').style.backgroundColor = "#f0f2f5";
+            getCurrentLocationAddress();
         }
-    }
-    
-    // ========== NIGHT CHARGE TOGGLE ==========
-    function toggleNightCharge() { 
-        nightActive = !nightActive; 
-        const btn = document.getElementById('nightBtn'); 
-        if(nightActive) { 
-            btn.innerHTML = '🌙 NIGHT ON'; 
-            btn.classList.add('night-active'); 
-        } else { 
-            btn.innerHTML = '🌙 NIGHT OFF'; 
-            btn.classList.remove('night-active'); 
-        } 
-        updateDisplay(); 
-    }
-    
-    // ========== REPORTS ==========
-    function getRidesByDateRange(startDate, endDate) {
-        const rides = JSON.parse(localStorage.getItem('rides')||'[]');
-        return rides.filter(r => { const d = new Date(r.time); return d >= startDate && d <= endDate; });
-    }
-    
-    function showReportTab(type) {
-        currentReportType = type;
-        document.querySelectorAll('.report-tab').forEach(t => t.classList.remove('active'));
-        event.target.classList.add('active');
-        updateReportDisplay();
-    }
-    
-    function updateReportDisplay() {
-        const now = new Date();
-        let rides = [];
-        let title = "";
-        
-        if(currentReportType === 'daily') {
-            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-            const tomorrow = new Date(today);
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            rides = getRidesByDateRange(today, tomorrow);
-            title = `📅 Daily Report - ${today.toLocaleDateString()}`;
-        } else if(currentReportType === 'monthly') {
-            const start = new Date(now.getFullYear(), now.getMonth(), 1);
-            const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-            rides = getRidesByDateRange(start, end);
-            title = `📆 Monthly Report - ${now.toLocaleString('default', { month: 'long' })} ${now.getFullYear()}`;
-        } else {
-            const start = new Date(now.getFullYear(), 0, 1);
-            const end = new Date(now.getFullYear(), 11, 31);
-            rides = getRidesByDateRange(start, end);
-            title = `📅 Yearly Report - ${now.getFullYear()}`;
-        }
-        
-        const paymentStats = {};
-        rides.forEach(ride => {
-            const method = ride.payment?.method || 'Cash';
-            paymentStats[method] = (paymentStats[method] || 0) + ride.fare;
-        });
-        
-        let total = rides.reduce((sum, r) => sum + r.fare, 0);
-        let html = `<div style="text-align:center; margin-bottom:15px;"><strong>${title}</strong><br>Total Rides: ${rides.length} | Total: Rs. ${total}</div>`;
-        html += `<div class="payment-stats">`;
-        for(const [method, amount] of Object.entries(paymentStats).sort((a,b) => b[1] - a[1])) {
-            html += `<div class="stat-row"><span>${method}</span><span>Rs. ${amount}</span></div>`;
-        }
-        html += `</div>`;
-        document.getElementById('report-container').innerHTML = html;
-    }
-    
-    function exportReportCSV() {
-        const now = new Date();
-        let rides = [];
-        if(currentReportType === 'daily') { const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()); const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1); rides = getRidesByDateRange(today, tomorrow); }
-        else if(currentReportType === 'monthly') { const start = new Date(now.getFullYear(), now.getMonth(), 1); const end = new Date(now.getFullYear(), now.getMonth() + 1, 0); rides = getRidesByDateRange(start, end); }
-        else { const start = new Date(now.getFullYear(), 0, 1); const end = new Date(now.getFullYear(), 11, 31); rides = getRidesByDateRange(start, end); }
-        
-        let csv = "Date,Receipt ID,Route,Distance (km),Fare (Rs),Payment Method\n";
-        rides.forEach(r => { csv += `${new Date(r.time).toLocaleDateString()},${r.id},${r.from}→${r.to},${r.km.toFixed(2)},${r.fare},${r.payment?.method||'Cash'}\n`; });
-        const blob = new Blob([csv], { type: 'text/csv' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `report_${currentReportType}_${now.toISOString().slice(0,10)}.csv`; a.click(); URL.revokeObjectURL(url);
-    }
-    
-    // ========== SHARE FUNCTIONS ==========
-    async function shareWA() { 
-        try { 
-            const el = document.getElementById('receipt-view'); 
-            const canvas = await html2canvas(el, { scale: 2 }); 
-            const blob = await new Promise(r => canvas.toBlob(r, 'image/png')); 
-            const file = new File([blob], `receipt_${currentRID}.png`, { type: 'image/png' }); 
-            if(navigator.share) await navigator.share({ files: [file] }); 
-            else { const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `receipt_${currentRID}.png`; a.click(); alert("Image saved!"); } 
-        } catch(e) { downloadReceiptPDF(); } 
-    }
-    
-    async function downloadReceiptPDF() { 
-        const { jsPDF } = window.jspdf; 
-        const el = document.getElementById('receipt-view'); 
-        const canvas = await html2canvas(el, { scale: 2 }); 
-        const pdf = new jsPDF({ unit: 'mm', format: 'a6' }); 
-        pdf.addImage(canvas.toDataURL(), 'PNG', 2.5, 5, 100, (canvas.height*100)/canvas.width); 
-        pdf.save(`${currentRID}.pdf`); 
-    }
-    
-    async function printViaBluetooth() { if(!navigator.bluetooth) { alert("Use Chrome on Android"); return; } try { const device = await navigator.bluetooth.requestDevice({ acceptAllDevices: true }); const server = await device.gatt.connect(); alert("Connected! (Printing demo)"); } catch(e) { alert("Bluetooth failed"); } }
-    
-    function resetToNew() { 
-        if(sTime && !confirm("Reset will lose current ride data. Continue?")) return; 
-        if(watchId) navigator.geolocation.clearWatch(watchId); 
-        sTime = null; totalKm = 0; lastLat = null; lastLon = null; 
-        document.getElementById('startBtn').innerHTML = "START RIDE"; 
-        document.getElementById('startBtn').classList.remove('btn-active-anim'); 
-        document.getElementById('startBtn').disabled = false; 
-        document.getElementById('startBtn').classList.remove('btn-start-disabled'); 
-        document.getElementById('start-loc').value = ''; 
-        document.getElementById('end-loc').value = ''; 
-        document.getElementById('mobile').value = ''; 
-        document.getElementById('manual-fare').value = ''; 
-        document.getElementById('discount-input').value = ''; 
-        document.getElementById('wait-select').value = '0'; 
-        document.getElementById('manual-km-input').value = '0'; 
-        updateDisplay(); 
-        if(currentMode === 'auto') { 
-            document.getElementById('auto-location-card').style.backgroundColor = "#f0f2f5"; 
-            getCurrentLocationAddress(); 
-        } 
-        if(currentMode !== 'manual') startGPS(); 
-        else { gpsReady = true; document.getElementById('startBtn').disabled = false; } 
+        if(currentMode !== 'manual') startGPS();
+        else { gpsReady = true; document.getElementById('startBtn').disabled = false; }
     }
     
     // ========== SETTINGS ==========
@@ -769,39 +810,87 @@
         if(file) { const r = new FileReader(); r.onload = e => saveLogo(e.target.result); r.readAsDataURL(file); } else saveLogo(SETTINGS.logo);
     }
     
-    // ========== HISTORY ==========
-    function updateHistoryList() { 
-        const rides = JSON.parse(localStorage.getItem('rides')||'[]'); 
-        const c = document.getElementById('history-list'); 
-        if(!rides.length) { c.innerHTML = "<p style='text-align:center;padding:20px;'>No rides</p>"; return; } 
-        c.innerHTML = rides.slice().reverse().map((r,i) => `<div class="history-item"><div style="display:flex; justify-content:space-between;"><b>${r.id}</b><button class="btn-reprint" onclick="reprintRide(${rides.length-1-i})">📄 VIEW</button></div><small>${new Date(r.time).toLocaleString()}</small><br><small>${r.from.substring(0,30)} → ${r.to.substring(0,30)}</small><div><strong>Rs.${r.fare}</strong> | ${r.km.toFixed(1)}km | ${r.payment?.method||'Cash'}</div></div>`).join(''); 
+    // ========== HISTORY & REPORTS ==========
+    function updateHistoryList() {
+        const rides = JSON.parse(localStorage.getItem('rides')||'[]');
+        const c = document.getElementById('history-list');
+        if(!rides.length) { c.innerHTML = "<p style='text-align:center;padding:20px;'>No rides</p>"; return; }
+        c.innerHTML = rides.slice().reverse().map((r,i) => `<div class="history-item"><div style="display:flex; justify-content:space-between;"><b>${r.id}</b><button class="btn-reprint" onclick="reprintRide(${rides.length-1-i})">📄 VIEW</button></div><small>${new Date(r.time).toLocaleString()}</small><br><small>${r.from.substring(0,30)} → ${r.to.substring(0,30)}</small><div><strong>Rs.${r.fare}</strong> | ${r.km.toFixed(1)}km | ${r.payment?.method||'Cash'}</div></div>`).join('');
     }
     
-    function reprintRide(i) { 
-        const rides = JSON.parse(localStorage.getItem('rides')||'[]'); 
-        if(rides[i]) {
-            isDuplicateView = true;
-            showReceipt(rides[i], true); // Show with DUPLICATE badge
-            closeM('history-modal');
-        } 
+    function reprintRide(i) {
+        const rides = JSON.parse(localStorage.getItem('rides')||'[]');
+        if(rides[i]) { showReceipt(rides[i], true); closeM('history-modal'); }
     }
     
-    function updateEarningsChart() { 
-        const rides = JSON.parse(localStorage.getItem('rides')||'[]'); 
-        const d = [0,0,0,0,0,0,0]; 
-        rides.forEach(r => d[new Date(r.time).getDay()] += r.fare); 
-        if(window.mChart) window.mChart.destroy(); 
-        window.mChart = new Chart(document.getElementById('earningsChart'), { type: 'bar', data: { labels: ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'], datasets: [{ data: d, backgroundColor: '#1a4a9e' }] } }); 
-        const today = rides.filter(r => new Date(r.time).toDateString() === new Date().toDateString()).reduce((a,b)=>a+b.fare,0); 
-        const total = rides.reduce((a,b)=>a+b.fare,0); 
-        document.getElementById('stat-today').innerHTML = "Rs." + today; 
-        document.getElementById('stat-total').innerHTML = "Rs." + total; 
+    function updateEarningsChart() {
+        const rides = JSON.parse(localStorage.getItem('rides')||'[]');
+        const d = [0,0,0,0,0,0,0];
+        rides.forEach(r => d[new Date(r.time).getDay()] += r.fare);
+        if(window.mChart) window.mChart.destroy();
+        window.mChart = new Chart(document.getElementById('earningsChart'), { type: 'bar', data: { labels: ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'], datasets: [{ data: d, backgroundColor: '#1a4a9e' }] } });
+        const today = rides.filter(r => new Date(r.time).toDateString() === new Date().toDateString()).reduce((a,b)=>a+b.fare,0);
+        const total = rides.reduce((a,b)=>a+b.fare,0);
+        document.getElementById('stat-today').innerHTML = "Rs." + today;
+        document.getElementById('stat-total').innerHTML = "Rs." + total;
     }
     
-    function downloadCSV() { 
-        const rides = JSON.parse(localStorage.getItem('rides')||'[]'); 
-        let csv = "Date,ID,Route,Distance,Fare,Payment\n" + rides.map(r => `${new Date(r.time).toLocaleDateString()},${r.id},${r.from}-${r.to},${r.km.toFixed(2)},${r.fare},${r.payment?.method||'Cash'}`).join("\n"); 
-        const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv])); a.download = 'rides.csv'; a.click(); 
+    function downloadCSV() {
+        const rides = JSON.parse(localStorage.getItem('rides')||'[]');
+        let csv = "Date,ID,Route,Distance,Fare,Payment\n" + rides.map(r => `${new Date(r.time).toLocaleDateString()},${r.id},${r.from}-${r.to},${r.km.toFixed(2)},${r.fare},${r.payment?.method||'Cash'}`).join("\n");
+        const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv])); a.download = 'rides.csv'; a.click();
+    }
+    
+    function getRidesByDateRange(startDate, endDate) {
+        const rides = JSON.parse(localStorage.getItem('rides')||'[]');
+        return rides.filter(r => { const d = new Date(r.time); return d >= startDate && d <= endDate; });
+    }
+    
+    function showReportTab(type) {
+        currentReportType = type;
+        document.querySelectorAll('.report-tab').forEach(t => t.classList.remove('active'));
+        event.target.classList.add('active');
+        updateReportDisplay();
+    }
+    
+    function updateReportDisplay() {
+        const now = new Date();
+        let rides = [];
+        let title = "";
+        if(currentReportType === 'daily') {
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1);
+            rides = getRidesByDateRange(today, tomorrow);
+            title = `📅 Daily Report - ${today.toLocaleDateString()}`;
+        } else if(currentReportType === 'monthly') {
+            const start = new Date(now.getFullYear(), now.getMonth(), 1);
+            const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+            rides = getRidesByDateRange(start, end);
+            title = `📆 Monthly Report - ${now.toLocaleString('default', { month: 'long' })} ${now.getFullYear()}`;
+        } else {
+            const start = new Date(now.getFullYear(), 0, 1);
+            const end = new Date(now.getFullYear(), 11, 31);
+            rides = getRidesByDateRange(start, end);
+            title = `📅 Yearly Report - ${now.getFullYear()}`;
+        }
+        const paymentStats = {};
+        rides.forEach(ride => { const method = ride.payment?.method || 'Cash'; paymentStats[method] = (paymentStats[method] || 0) + ride.fare; });
+        let total = rides.reduce((sum, r) => sum + r.fare, 0);
+        let html = `<div style="text-align:center; margin-bottom:15px;"><strong>${title}</strong><br>Total Rides: ${rides.length} | Total: Rs. ${total}</div><div class="payment-stats">`;
+        for(const [method, amount] of Object.entries(paymentStats).sort((a,b) => b[1] - a[1])) { html += `<div class="stat-row"><span>${method}</span><span>Rs. ${amount}</span></div>`; }
+        html += `</div>`;
+        document.getElementById('report-container').innerHTML = html;
+    }
+    
+    function exportReportCSV() {
+        const now = new Date();
+        let rides = [];
+        if(currentReportType === 'daily') { const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()); const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1); rides = getRidesByDateRange(today, tomorrow); }
+        else if(currentReportType === 'monthly') { const start = new Date(now.getFullYear(), now.getMonth(), 1); const end = new Date(now.getFullYear(), now.getMonth() + 1, 0); rides = getRidesByDateRange(start, end); }
+        else { const start = new Date(now.getFullYear(), 0, 1); const end = new Date(now.getFullYear(), 11, 31); rides = getRidesByDateRange(start, end); }
+        let csv = "Date,Receipt ID,Route,Distance (km),Fare (Rs),Payment Method\n";
+        rides.forEach(r => { csv += `${new Date(r.time).toLocaleDateString()},${r.id},${r.from}→${r.to},${r.km.toFixed(2)},${r.fare},${r.payment?.method||'Cash'}\n`; });
+        const blob = new Blob([csv], { type: 'text/csv' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `report_${currentReportType}_${now.toISOString().slice(0,10)}.csv`; a.click(); URL.revokeObjectURL(url);
     }
     
     function openLogin() { document.getElementById('admin-pass').value = ''; document.getElementById('login-modal').style.display = 'flex'; }
