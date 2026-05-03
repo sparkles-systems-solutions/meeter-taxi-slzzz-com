@@ -73,6 +73,15 @@
         .receipt-seal { position: absolute; bottom: 5px; right: 5px; width: 35px; height: 35px; border-radius: 50%; border: 2px solid #e74c3c; color: #e74c3c; font-size: 8px; font-weight: bold; display: flex; align-items: center; justify-content: center; text-align: center; background: rgba(255,255,255,0.8); transform: rotate(-15deg); pointer-events: none; }
         .receipt-seal:before { content: "✓ PAID"; font-size: 7px; font-weight: bold; }
         
+        /* QR Code Container with proper margin */
+        #receipt-qr { 
+            display: flex; 
+            justify-content: center; 
+            margin: 10px 0; 
+            padding: 8px;
+            background: white;
+        }
+        
         .receipt-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; }
         .btn-wa, .btn-gm, .btn-pdf, .btn-print { padding: 12px; border-radius: 15px; border: none; font-weight: bold; cursor: pointer; }
         .btn-wa { background: #25D366; color: white; }
@@ -268,9 +277,9 @@
         <div id="receipt-view" class="receipt-print" style="position: relative;">
             <div class="r-header" id="receipt-header">TAXI RECEIPT</div>
             <div id="receipt-body"></div>
-            <div class="r-total">TOTAL: Rs.<span id="receipt-total"></span></div>
+            <div class="r-total">TOTAL: Rs. <span id="receipt-total"></span></div>
             <div class="r-words" id="receipt-words"></div>
-            <div id="receipt-qr" style="display:flex; justify-content:center; margin:8px 0;"></div>
+            <div id="receipt-qr"></div>
             <div class="r-divider">Thank you! 🚕</div>
             <div class="receipt-seal"></div>
         </div>
@@ -686,18 +695,25 @@
                  <div class="r-row"><span>Payment:</span><b>${ride.payment.method} ${ride.payment.detail}</b></div>`;
         
         document.getElementById('receipt-body').innerHTML = rows;
-        document.getElementById('receipt-total').innerHTML = "Rs. " + ride.fare;
+        document.getElementById('receipt-total').innerHTML = ride.fare.toFixed(2);
         document.getElementById('receipt-header').innerText = SETTINGS.receiptName;
         
         // Amount in words
         const words = numberToWords(ride.fare);
         document.getElementById('receipt-words').innerHTML = words;
         
-        // QR Code - Short details only (ID, Date, Fare, Payment)
+        // QR Code - Larger size (90x90) with proper margin
+        const qrContainer = document.getElementById('receipt-qr');
+        qrContainer.innerHTML = "";
+        qrContainer.style.padding = "8px";
+        qrContainer.style.backgroundColor = "white";
         const qrDate = new Date(ride.time).toLocaleDateString();
-        const qrText = `${SETTINGS.appName}\nReceipt: ${ride.id}\nDate: ${qrDate}\nFare: Rs. ${ride.fare}\nPayment: ${ride.payment.method}`;
-        document.getElementById('receipt-qr').innerHTML = "";
-        new QRCode(document.getElementById("receipt-qr"), { text: qrText, width: 70, height: 70 });
+        const qrText = `${SETTINGS.appName}\nReceipt: ${ride.id}\nDate: ${qrDate}\nFare: Rs. ${ride.fare.toFixed(2)}\nPayment: ${ride.payment.method}`;
+        new QRCode(qrContainer, { 
+            text: qrText, 
+            width: 90,   // Increased from 70 to 90 for better scanning
+            height: 90   // Increased from 70 to 90 for better scanning
+        });
         
         document.getElementById('receiptModal').style.display = "flex";
     }
@@ -732,7 +748,7 @@
                 a.download = `receipt_${currentRID}.pdf`;
                 a.click();
                 setTimeout(() => {
-                    window.location.href = `mailto:?subject=Taxi Receipt ${currentRID}&body=Receipt ID: ${currentRID}%0D%0ATotal: ${document.getElementById('receipt-total')?.innerText || ''}`;
+                    window.location.href = `mailto:?subject=Taxi Receipt ${currentRID}&body=Receipt ID: ${currentRID}%0D%0ATotal: Rs. ${document.getElementById('receipt-total')?.innerText || ''}`;
                 }, 500);
                 alert("PDF saved! Email client opened.");
             }
