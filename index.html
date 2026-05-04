@@ -625,6 +625,7 @@
         return `${fy.toString().slice(-2)}${n.toLocaleString('en',{month:'short'}).toUpperCase()}-${c.toString().padStart(8,'0')}`;
     }
     
+    // ========== PAYMENT ==========
     function openPaymentPopup() {
         selectedMethod = "cash";
         document.querySelectorAll('.payment-method-btn').forEach(btn => btn.classList.remove('selected'));
