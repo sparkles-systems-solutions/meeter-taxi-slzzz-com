@@ -56,7 +56,8 @@
         .location-address { font-size: 13px; font-weight: 600; color: var(--primary); word-break: break-word; }
         .refresh-location { background: transparent; border: 1px solid var(--primary); color: var(--primary); padding: 5px 10px; border-radius: 20px; font-size: 10px; margin-top: 5px; cursor: pointer; }
         .location-fields { display: block; }
-        .map-picker-btn { background: var(--primary); color: white; border: none; padding: 10px; border-radius: 15px; font-size: 12px; cursor: pointer; width: 100%; }
+        .map-picker-btn { background: var(--primary); color: white; border: none; padding: 10px; border-radius: 15px; font-size: 12px; cursor: pointer; width: 100%; margin-bottom: 5px; }
+        .native-map-btn { background: #34a853; color: white; border: none; padding: 10px; border-radius: 15px; font-size: 12px; cursor: pointer; width: 100%; }
         .map-container { height: 280px; width: 100%; border-radius: 15px; margin: 10px 0; }
         .search-results { position: absolute; background: white; border: 1px solid #ddd; border-radius: 12px; max-height: 150px; overflow-y: auto; z-index: 1000; width: calc(100% - 30px); }
         .search-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; font-size: 12px; }
@@ -102,6 +103,9 @@
         hr { margin: 10px 0; opacity: 0.2; }
         .history-item { background: #f8f9fa; padding: 15px; margin-bottom: 10px; border-radius: 20px; border-left: 5px solid var(--primary); }
         .restore-banner { background: #ffc107; color: #856404; padding: 10px; border-radius: 15px; margin-bottom: 10px; text-align: center; font-size: 12px; display: none; cursor: pointer; }
+        .location-btn-row { display: flex; gap: 8px; margin-top: 5px; }
+        .location-btn-row .map-picker-btn { flex: 1; margin-bottom: 0; }
+        .location-btn-row .native-map-btn { flex: 1; margin-bottom: 0; }
     </style>
 </head>
 <body>
@@ -143,9 +147,13 @@
             <input id="start-loc" type="text" placeholder="Pick Up Location">
             <input id="end-loc" type="text" placeholder="Drop Off Location">
         </div>
-        <div class="grid-2" style="margin-top: 5px;">
-            <button class="map-picker-btn" onclick="openMapPicker('start', 'sri+lanka')">🗺️ Pickup Map</button>
-            <button class="map-picker-btn" onclick="openMapPicker('end', 'sri+lanka')">🗺️ Drop Map</button>
+        <div class="location-btn-row">
+            <button class="map-picker-btn" onclick="openMapPicker('start')">🗺️ Pickup Map</button>
+            <button class="native-map-btn" onclick="openNativeMapPicker('start')">📱 Phone Maps</button>
+        </div>
+        <div class="location-btn-row">
+            <button class="map-picker-btn" onclick="openMapPicker('end')">🗺️ Drop Map</button>
+            <button class="native-map-btn" onclick="openNativeMapPicker('end')">📱 Phone Maps</button>
         </div>
     </div>
 
@@ -198,8 +206,8 @@
 <div id="map-modal" class="modal">
     <div class="modal-content">
         <div class="close-circle" onclick="closeMapModal()">✕</div>
-        <h4 style="text-align:center;" id="map-title">Select Location</h4>
-        <input type="text" id="map-search" class="search-box" placeholder="Search location in Sri Lanka..." style="width:100%; padding:12px; border-radius:15px; border:1px solid #ddd;">
+        <h4 style="text-align:center;" id="map-title">Select Location (Sri Lanka)</h4>
+        <input type="text" id="map-search" class="search-box" placeholder="Search city/town in Sri Lanka..." style="width:100%; padding:12px; border-radius:15px; border:1px solid #ddd;">
         <div id="search-results" class="search-results" style="display:none;"></div>
         <div id="map" class="map-container"></div>
         <input type="text" id="selected-address" readonly placeholder="Selected address" style="width:100%; margin-top:10px; padding:12px; border-radius:15px; background:#f0f2f5;">
@@ -210,7 +218,7 @@
     </div>
 </div>
 
-<!-- Payment Popup - Updated with all fields -->
+<!-- Payment Popup -->
 <div id="payment-popup" class="modal">
     <div class="modal-content payment-popup">
         <div class="close-circle" onclick="closePaymentPopup()">✕</div>
@@ -338,10 +346,7 @@
     let wakeLock = null;
     async function requestWakeLock() {
         if ('wakeLock' in navigator) {
-            try {
-                wakeLock = await navigator.wakeLock.request('screen');
-                return true;
-            } catch(err) { return false; }
+            try { wakeLock = await navigator.wakeLock.request('screen'); return true; } catch(err) { return false; }
         }
         return false;
     }
@@ -350,8 +355,7 @@
     // ========== NUMBER TO WORDS ==========
     function numberToWords(num) {
         if (num === 0) return "Zero Rupees Only";
-        const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine',
-                      'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+        const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
         const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
         function convert(n) {
             if (n < 20) return ones[n];
@@ -373,7 +377,6 @@
     let currentLocationAddress = "", currentLocationLat = null, currentLocationLon = null;
     let startLocationAddress = "", endLocationAddress = "";
     let mapPickerField = null, mapObj = null, mapMarker = null;
-    let currentMapCountryFilter = "";
     
     let SETTINGS = {
         base: 100, rate: 80, waitRate: 5, nightPercent: 10,
@@ -382,14 +385,29 @@
     };
     let currentReportType = "daily";
     
+    // ========== NATIVE MAP PICKER ==========
+    function openNativeMapPicker(field) {
+        mapPickerField = field;
+        const searchQuery = prompt(`Enter ${field === 'start' ? 'pickup' : 'drop'} location name or address in Sri Lanka:`, "");
+        if (searchQuery && searchQuery.trim()) {
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            const url = isIOS ? "http://maps.apple.com/?q=" : "https://maps.google.com/?q=";
+            window.open(url + encodeURIComponent(searchQuery.trim() + " Sri Lanka"), '_blank');
+            setTimeout(() => {
+                const manualAddr = prompt(`After selecting from maps, paste the address here:`, searchQuery);
+                if (manualAddr && manualAddr.trim()) {
+                    if (field === 'start') document.getElementById('start-loc').value = manualAddr;
+                    else document.getElementById('end-loc').value = manualAddr;
+                    alert(`✓ ${field === 'start' ? 'Pickup' : 'Drop'} location set!`);
+                }
+            }, 2000);
+        }
+    }
+    
+    // ========== SAVE/LOAD STATE ==========
     function saveRideState() {
         if (sTime !== null) {
-            const state = {
-                isRideActive: true, startTime: sTime, totalMeters: totalMeters,
-                lastLat: lastLat, lastLon: lastLon, currentMode: currentMode,
-                nightActive: nightActive, startLocationAddress: startLocationAddress,
-                currentLocationAddress: currentLocationAddress, gpsReady: gpsReady
-            };
+            const state = { isRideActive: true, startTime: sTime, totalMeters, lastLat, lastLon, currentMode, nightActive, startLocationAddress, currentLocationAddress, gpsReady, endLocationAddress };
             localStorage.setItem('amt_ride_state', JSON.stringify(state));
         } else { localStorage.removeItem('amt_ride_state'); }
     }
@@ -399,10 +417,7 @@
         if (!saved) return false;
         try {
             const state = JSON.parse(saved);
-            if (state.isRideActive && state.startTime) {
-                document.getElementById('restore-banner').style.display = 'block';
-                return true;
-            }
+            if (state.isRideActive && state.startTime) { document.getElementById('restore-banner').style.display = 'block'; return true; }
         } catch(e) {}
         return false;
     }
@@ -417,6 +432,7 @@
             currentMode = state.currentMode || "auto"; nightActive = state.nightActive || false;
             startLocationAddress = state.startLocationAddress || "";
             currentLocationAddress = state.currentLocationAddress || "";
+            endLocationAddress = state.endLocationAddress || "";
             gpsReady = true;
             setMode(currentMode);
             const nightBtn = document.getElementById('nightBtn');
@@ -427,7 +443,9 @@
                 document.getElementById('current-location-address').innerHTML = currentLocationAddress;
                 document.getElementById('auto-location-card').style.backgroundColor = "#d4edda";
             }
-            if (currentMode === 'manual') { document.getElementById('manual-km-input').value = (totalMeters/1000).toFixed(2); }
+            if ((currentMode === 'manual' || currentMode === 'gps') && startLocationAddress) document.getElementById('start-loc').value = startLocationAddress;
+            if ((currentMode === 'manual' || currentMode === 'gps') && endLocationAddress) document.getElementById('end-loc').value = endLocationAddress;
+            if (currentMode === 'manual') document.getElementById('manual-km-input').value = (totalMeters/1000).toFixed(2);
             if (sTime) {
                 document.getElementById('startBtn').innerHTML = "⏵ ACTIVE";
                 document.getElementById('startBtn').classList.add('btn-active-anim');
@@ -444,6 +462,7 @@
         } catch(e) { localStorage.removeItem('amt_ride_state'); }
     }
     
+    // ========== DISTANCE & FARE ==========
     function calculateDistanceMeters(lat1, lon1, lat2, lon2) {
         const R = 6371000;
         const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -458,23 +477,18 @@
         document.getElementById('disp-fare').innerHTML = "Rs. " + calcFare();
         if(currentMode === 'manual') document.getElementById('manual-km-input').value = km.toFixed(2);
         const ni = document.getElementById('night-indicator');
-        if(ni) {
-            if(nightActive && !document.getElementById('manual-fare').value) ni.style.display = 'block';
-            else ni.style.display = 'none';
-        }
+        if(ni) ni.style.display = (nightActive && !document.getElementById('manual-fare').value) ? 'block' : 'none';
     }
     
     function calcFare() {
-        let manualFare = parseInt(document.getElementById('manual-fare').value)||0, 
-            disc = parseInt(document.getElementById('discount-input').value)||0, 
-            wait = parseInt(document.getElementById('wait-select').value), 
-            waitCharge = wait * SETTINGS.waitRate;
+        let manualFare = parseInt(document.getElementById('manual-fare').value)||0, disc = parseInt(document.getElementById('discount-input').value)||0, wait = parseInt(document.getElementById('wait-select').value), waitCharge = wait * SETTINGS.waitRate;
         let km = totalMeters / 1000;
         let total = manualFare > 0 ? manualFare + waitCharge - disc : SETTINGS.base + (Math.max(0, km - 1) * SETTINGS.rate) + waitCharge - disc;
         if(nightActive && manualFare === 0) total = total + (total * SETTINGS.nightPercent / 100);
         return Math.max(0, Math.round(total));
     }
     
+    // ========== GPS ==========
     function startGPS() {
         const statusDiv = document.getElementById('gps-status');
         if(!navigator.geolocation) { statusDiv.className = 'gps-status gps-error'; statusDiv.innerHTML = '❌ GPS not supported'; return; }
@@ -489,11 +503,7 @@
                     statusDiv.innerHTML = `✅ GPS Ready (${acc.toFixed(0)}m)`;
                     document.getElementById('startBtn').disabled = false;
                     document.getElementById('startBtn').classList.remove('btn-start-disabled');
-                    if(currentMode === 'auto') {
-                        currentLocationLat = lastLat;
-                        currentLocationLon = lastLon;
-                        reverseGeocode(lastLat, lastLon);
-                    }
+                    if(currentMode === 'auto') { currentLocationLat = lastLat; currentLocationLon = lastLon; reverseGeocode(lastLat, lastLon); }
                 } else if(acc < 100) {
                     gpsReady = true;
                     statusDiv.className = 'gps-status gps-warning';
@@ -526,11 +536,7 @@
                 const lat = pos.coords.latitude, lon = pos.coords.longitude, acc = pos.coords.accuracy;
                 if(lastLat !== null && lastLon !== null && acc < 50) {
                     let d = calculateDistanceMeters(lastLat, lastLon, lat, lon);
-                    if(d > 3 && d < 200) {
-                        totalMeters += d;
-                        updateDisplay();
-                        saveRideState();
-                    }
+                    if(d > 3 && d < 200) { totalMeters += d; updateDisplay(); saveRideState(); }
                 }
                 lastLat = lat; lastLon = lon;
             },
@@ -539,12 +545,12 @@
         );
     }
     
+    // ========== MODE ==========
     function setMode(mode) {
         currentMode = mode;
         document.getElementById('mode-auto').classList.remove('active');
         document.getElementById('mode-gps').classList.remove('active');
         document.getElementById('mode-manual').classList.remove('active');
-        
         if(mode === 'auto') {
             document.getElementById('mode-auto').classList.add('active');
             document.getElementById('auto-location-card').style.display = 'block';
@@ -573,6 +579,7 @@
         updateDisplay();
     }
     
+    // ========== AUTO LOCATION ==========
     function getCurrentLocationAddress() {
         if(!navigator.geolocation) return;
         navigator.geolocation.getCurrentPosition(async (pos) => {
@@ -593,21 +600,18 @@
         } catch(e) { currentLocationAddress = `${lat.toFixed(4)}, ${lon.toFixed(4)}`; }
     }
     
-    async function searchLocation(query, countryFilter) {
+    // ========== MAP PICKER ==========
+    async function searchLocation(query) {
         try {
-            let url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=8`;
-            if (countryFilter) url += `&countrycodes=${countryFilter}`;
-            const res = await fetch(url);
+            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query + " Sri Lanka")}&limit=8&countrycodes=lk`);
             return await res.json();
         } catch(e) { return []; }
     }
     
-    function openMapPicker(field, countryFilter) {
+    function openMapPicker(field) {
         mapPickerField = field;
-        currentMapCountryFilter = countryFilter || "";
         document.getElementById('map-title').innerText = field === 'start' ? 'Pickup Location (Sri Lanka)' : 'Drop Location (Sri Lanka)';
         document.getElementById('map-modal').style.display = 'flex';
-        
         setTimeout(() => {
             if(mapObj) mapObj.remove();
             mapObj = L.map('map').setView([7.8731, 80.7718], 8);
@@ -628,14 +632,13 @@
             searchInput.oninput = async function() {
                 const q = this.value.trim();
                 if(q.length < 2) { resultsDiv.style.display = 'none'; return; }
-                const data = await searchLocation(q + " Sri Lanka", "lk");
+                const data = await searchLocation(q);
                 resultsDiv.innerHTML = '';
                 if(data.length === 0) resultsDiv.innerHTML = '<div class="search-item">No results in Sri Lanka</div>';
                 data.forEach(place => {
                     const item = document.createElement('div');
                     item.className = 'search-item';
-                    let displayName = place.display_name.substring(0, 60);
-                    item.innerText = displayName;
+                    item.innerText = place.display_name.substring(0, 60);
                     item.onclick = () => {
                         mapObj.setView([place.lat, place.lon], 16);
                         mapMarker.setLatLng([place.lat, place.lon]);
@@ -670,16 +673,14 @@
     
     function useMapLocation() {
         const addr = document.getElementById('selected-address').value;
-        if(addr && mapPickerField === 'start') document.getElementById('start-loc').value = addr;
-        else if(addr && mapPickerField === 'end') document.getElementById('end-loc').value = addr;
+        if(addr && mapPickerField === 'start') { document.getElementById('start-loc').value = addr; startLocationAddress = addr; }
+        else if(addr && mapPickerField === 'end') { document.getElementById('end-loc').value = addr; endLocationAddress = addr; }
         closeMapModal();
     }
     
-    function closeMapModal() { 
-        document.getElementById('map-modal').style.display = 'none'; 
-        if(mapObj) mapObj.remove(); 
-    }
+    function closeMapModal() { document.getElementById('map-modal').style.display = 'none'; if(mapObj) mapObj.remove(); }
     
+    // ========== MANUAL ==========
     function manualAddDistance(km) { 
         if(!sTime) { alert("Start ride first!"); return; }
         if(currentMode !== 'manual') { alert("Switch to Manual KM Mode!"); return; }
@@ -698,28 +699,17 @@
         if(!isNaN(val) && val >= 0) { totalMeters = val * 1000; updateDisplay(); saveRideState(); } 
     }
     
+    // ========== RIDE ==========
     async function startRide() {
         if(sTime) { alert("Ride already active!"); return; }
         
         if(currentMode === 'auto') { 
-            if(!currentLocationAddress) { 
-                alert("Please wait for GPS to get current location!"); 
-                return; 
-            } 
+            if(!currentLocationAddress) { alert("Please wait for GPS to get current location!"); return; } 
         } else if(currentMode === 'gps') { 
-            if(!document.getElementById('start-loc').value.trim() || !document.getElementById('end-loc').value.trim()) { 
-                alert("Enter pickup and drop locations!"); 
-                return; 
-            } 
-            if(!gpsReady) { 
-                alert("GPS not ready! Please wait for GPS signal."); 
-                return; 
-            } 
+            if(!document.getElementById('start-loc').value.trim() || !document.getElementById('end-loc').value.trim()) { alert("Enter pickup and drop locations!"); return; } 
+            if(!gpsReady) { alert("GPS not ready! Please wait for GPS signal."); return; } 
         } else { 
-            if(!document.getElementById('start-loc').value.trim() || !document.getElementById('end-loc').value.trim()) { 
-                alert("Enter pickup and drop locations!"); 
-                return; 
-            } 
+            if(!document.getElementById('start-loc').value.trim() || !document.getElementById('end-loc').value.trim()) { alert("Enter pickup and drop locations!"); return; } 
         }
         
         sTime = new Date();
@@ -729,10 +719,7 @@
         if(currentMode === 'auto') {
             totalMeters = 0;
             startLocationAddress = currentLocationAddress;
-            if(currentLocationLat && currentLocationLon) { 
-                lastLat = currentLocationLat; 
-                lastLon = currentLocationLon; 
-            }
+            if(currentLocationLat && currentLocationLon) { lastLat = currentLocationLat; lastLon = currentLocationLon; }
             document.getElementById('auto-location-card').style.backgroundColor = "#d4edda";
             trackRide();
         } else if(currentMode === 'gps') {
@@ -741,12 +728,7 @@
             endLocationAddress = document.getElementById('end-loc').value;
             lastLat = null; lastLon = null;
             setTimeout(() => {
-                if(navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(function(pos) {
-                        lastLat = pos.coords.latitude;
-                        lastLon = pos.coords.longitude;
-                    });
-                }
+                if(navigator.geolocation) { navigator.geolocation.getCurrentPosition(function(pos) { lastLat = pos.coords.latitude; lastLon = pos.coords.longitude; }); }
             }, 100);
             trackRide();
         } else {
@@ -761,7 +743,6 @@
         
         document.querySelectorAll('.mode-btn').forEach(btn => btn.style.pointerEvents = 'none');
         document.querySelectorAll('.mode-btn').forEach(btn => btn.style.opacity = '0.5');
-        
         saveRideState();
     }
     
@@ -792,8 +773,7 @@
         currentRID = generateReceiptID();
         let km = totalMeters / 1000;
         pendingRideData = {
-            id: currentRID, fare: fare, km: km,
-            from: from, to: to,
+            id: currentRID, fare: fare, km: km, from: from, to: to,
             mobile: document.getElementById('mobile').value || "N/A",
             wait: parseInt(document.getElementById('wait-select').value),
             disc: parseInt(document.getElementById('discount-input').value)||0,
@@ -815,6 +795,7 @@
         return `${fy.toString().slice(-2)}${n.toLocaleString('en',{month:'short'}).toUpperCase()}-${c.toString().padStart(8,'0')}`;
     }
     
+    // ========== PAYMENT ==========
     function openPaymentPopup() {
         selectedMethod = "cash";
         document.querySelectorAll('.payment-method-btn').forEach(btn => btn.classList.remove('selected'));
@@ -885,7 +866,6 @@
     function showReceipt(ride, isDuplicate) {
         let sub = (ride.manualFare > 0) ? ride.manualFare : (SETTINGS.base + (Math.max(0, ride.km - 1) * SETTINGS.rate));
         let waitC = ride.wait * SETTINGS.waitRate;
-        
         let duplicateHtml = isDuplicate ? '<div class="duplicate-badge">📋 DUPLICATE / COPY</div>' : '';
         let rows = duplicateHtml;
         rows += `<div class="r-row"><span>Receipt:</span><b>${ride.id}</b></div>
@@ -903,19 +883,14 @@
         document.getElementById('receipt-body').innerHTML = rows;
         document.getElementById('receipt-total').innerHTML = ride.fare.toFixed(2);
         document.getElementById('receipt-header').innerText = SETTINGS.receiptName;
-        
-        const words = numberToWords(ride.fare);
-        document.getElementById('receipt-words').innerHTML = words;
-        
-        const qrDate = new Date(ride.time).toLocaleDateString();
-        const qrText = `${ride.id}|${qrDate}|Rs.${ride.fare.toFixed(2)}|${ride.payment.method}`;
+        document.getElementById('receipt-words').innerHTML = numberToWords(ride.fare);
         const qrContainer = document.getElementById('receipt-qr');
         qrContainer.innerHTML = "";
-        new QRCode(qrContainer, { text: qrText, width: 85, height: 85 });
-        
+        new QRCode(qrContainer, { text: `${ride.id}|${new Date(ride.time).toLocaleDateString()}|Rs.${ride.fare}|${ride.payment.method}`, width: 85, height: 85 });
         document.getElementById('receiptModal').style.display = "flex";
     }
     
+    // ========== SHARE ==========
     async function shareWA() {
         try {
             const el = document.getElementById('receipt-view');
@@ -957,6 +932,7 @@
     
     async function printViaBluetooth() { if(!navigator.bluetooth) { alert("Use Chrome on Android"); return; } try { await navigator.bluetooth.requestDevice({ acceptAllDevices: true }); alert("Demo mode"); } catch(e) { alert("Failed"); } }
     
+    // ========== UTILITIES ==========
     function toggleNightCharge() {
         nightActive = !nightActive;
         const btn = document.getElementById('nightBtn');
@@ -968,16 +944,12 @@
     
     function resetToNew() {
         if(sTime && !confirm("Reset will lose current ride data. Continue?")) return;
-        
         if(watchId) navigator.geolocation.clearWatch(watchId);
         releaseWakeLock();
         document.body.classList.remove('ride-active');
-        
         document.querySelectorAll('.mode-btn').forEach(btn => btn.style.pointerEvents = 'auto');
         document.querySelectorAll('.mode-btn').forEach(btn => btn.style.opacity = '1');
-        
-        sTime = null; totalMeters = 0; lastLat = null; lastLon = null;
-        startLocationAddress = ""; endLocationAddress = "";
+        sTime = null; totalMeters = 0; lastLat = null; lastLon = null; startLocationAddress = ""; endLocationAddress = "";
         document.getElementById('startBtn').innerHTML = "START RIDE";
         document.getElementById('startBtn').classList.remove('btn-active-anim');
         document.getElementById('startBtn').disabled = false;
@@ -989,17 +961,13 @@
         document.getElementById('wait-select').value = '0';
         document.getElementById('manual-km-input').value = '0';
         updateDisplay();
-        
         localStorage.removeItem('amt_ride_state');
-        
-        if(currentMode === 'auto') {
-            document.getElementById('auto-location-card').style.backgroundColor = "#f0f2f5";
-            getCurrentLocationAddress();
-        }
+        if(currentMode === 'auto') { document.getElementById('auto-location-card').style.backgroundColor = "#f0f2f5"; getCurrentLocationAddress(); }
         if(currentMode !== 'manual') startGPS();
         else { gpsReady = true; document.getElementById('startBtn').disabled = false; }
     }
     
+    // ========== SETTINGS ==========
     function loadSettings() {
         const saved = localStorage.getItem('amt_settings');
         if(saved) { try { const parsed = JSON.parse(saved); SETTINGS = {...SETTINGS, ...parsed}; } catch(e){} }
@@ -1029,6 +997,7 @@
         if(file) { const r = new FileReader(); r.onload = e => saveLogo(e.target.result); r.readAsDataURL(file); } else saveLogo(SETTINGS.logo);
     }
     
+    // ========== HISTORY & REPORTS ==========
     function updateHistoryList() {
         const rides = JSON.parse(localStorage.getItem('rides')||'[]');
         const c = document.getElementById('history-list');
@@ -1036,10 +1005,7 @@
         c.innerHTML = rides.slice().reverse().map((r,i) => `<div class="history-item"><div style="display:flex; justify-content:space-between;"><b>${r.id}</b><button class="btn-reprint" onclick="reprintRide(${rides.length-1-i})">📄 VIEW</button></div><small>${new Date(r.time).toLocaleString()}</small><br><small>${r.from.substring(0,30)} → ${r.to.substring(0,30)}</small><div><strong>Rs.${r.fare}</strong> | ${r.km.toFixed(1)}km | ${r.payment?.method||'Cash'}</div></div>`).join('');
     }
     
-    function reprintRide(i) {
-        const rides = JSON.parse(localStorage.getItem('rides')||'[]');
-        if(rides[i]) { showReceipt(rides[i], true); closeM('history-modal'); }
-    }
+    function reprintRide(i) { const rides = JSON.parse(localStorage.getItem('rides')||'[]'); if(rides[i]) { showReceipt(rides[i], true); closeM('history-modal'); } }
     
     function updateEarningsChart() {
         const rides = JSON.parse(localStorage.getItem('rides')||'[]');
@@ -1090,32 +1056,13 @@
             rides = getRidesByDateRange(start, end);
             title = `📅 Yearly Report - ${now.getFullYear()}`;
         }
-        
         const paymentTotals = {};
-        rides.forEach(ride => {
-            const method = ride.payment?.method || 'Cash';
-            paymentTotals[method] = (paymentTotals[method] || 0) + ride.fare;
-        });
-        
+        rides.forEach(ride => { const method = ride.payment?.method || 'Cash'; paymentTotals[method] = (paymentTotals[method] || 0) + ride.fare; });
         const total = rides.reduce((s, r) => s + r.fare, 0);
         const rideCount = rides.length;
-        
-        let html = `
-            <div style="text-align:center; padding: 10px; background:#f0f2f5; border-radius:15px; margin-bottom:15px;">
-                <strong>${title}</strong><br>
-                Rides: ${rideCount} | Total: Rs. ${total}
-            </div>
-            <div class="payment-stats">
-        `;
-        
-        for(const [method, amount] of Object.entries(paymentTotals).sort((a,b) => b[1] - a[1])) {
-            html += `<div class="stat-row"><span>${method}</span><span>Rs. ${amount}</span></div>`;
-        }
-        
-        if(Object.keys(paymentTotals).length === 0) {
-            html += `<div class="stat-row"><span>No payments found</span><span>Rs. 0</span></div>`;
-        }
-        
+        let html = `<div style="text-align:center; padding: 10px; background:#f0f2f5; border-radius:15px; margin-bottom:15px;"><strong>${title}</strong><br>Rides: ${rideCount} | Total: Rs. ${total}</div><div class="payment-stats">`;
+        for(const [method, amount] of Object.entries(paymentTotals).sort((a,b) => b[1] - a[1])) { html += `<div class="stat-row"><span>${method}</span><span>Rs. ${amount}</span></div>`; }
+        if(Object.keys(paymentTotals).length === 0) html += `<div class="stat-row"><span>No payments found</span><span>Rs. 0</span></div>`;
         html += `</div>`;
         document.getElementById('report-container').innerHTML = html;
     }
@@ -1130,32 +1077,16 @@
         const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv])); a.download = `report_${currentReportType}.csv`; a.click();
     }
     
+    // ========== LOGIN ==========
     let loginAttempts = 0;
     let lockUntil = null;
     
     function checkLogin() {
         const password = document.getElementById('admin-pass').value;
-        if (lockUntil && Date.now() < lockUntil) {
-            const waitMinutes = Math.ceil((lockUntil - Date.now()) / 60000);
-            alert(`Too many attempts! Try again in ${waitMinutes} minutes`);
-            return false;
-        }
+        if (lockUntil && Date.now() < lockUntil) { const waitMinutes = Math.ceil((lockUntil - Date.now()) / 60000); alert(`Too many attempts! Try again in ${waitMinutes} minutes`); return false; }
         if (lockUntil && Date.now() >= lockUntil) { loginAttempts = 0; lockUntil = null; }
-        if (password === SETTINGS.password) {
-            loginAttempts = 0; lockUntil = null;
-            closeM('login-modal');
-            document.getElementById('settings-modal').style.display = 'flex';
-            return true;
-        } else {
-            loginAttempts++;
-            if (loginAttempts >= 5) {
-                lockUntil = Date.now() + 5 * 60 * 1000;
-                alert(`Too many failed attempts! Locked for 5 minutes`);
-            } else {
-                alert(`Wrong password! ${5 - loginAttempts} attempts remaining`);
-            }
-            return false;
-        }
+        if (password === SETTINGS.password) { loginAttempts = 0; lockUntil = null; closeM('login-modal'); document.getElementById('settings-modal').style.display = 'flex'; return true; }
+        else { loginAttempts++; if (loginAttempts >= 5) { lockUntil = Date.now() + 5 * 60 * 1000; alert(`Too many failed attempts! Locked for 5 minutes`); } else { alert(`Wrong password! ${5 - loginAttempts} attempts remaining`); } return false; }
     }
     
     function openLogin() { document.getElementById('admin-pass').value = ''; document.getElementById('login-modal').style.display = 'flex'; }
