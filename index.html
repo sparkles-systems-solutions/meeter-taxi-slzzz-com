@@ -89,10 +89,10 @@
         .mode-btn { flex: 1; padding: 10px; border-radius: 25px; border: 2px solid #ddd; background: white; cursor: pointer; font-weight: 600; font-size: 11px; }
         .mode-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
         .payment-popup { text-align: center; }
-        .payment-methods { display: flex; flex-direction: column; gap: 10px; margin: 15px 0; }
+        .payment-methods { display: flex; flex-direction: column; gap: 10px; margin: 15px 0; max-height: 250px; overflow-y: auto; }
         .payment-method-btn { background: #f0f2f5; border: 2px solid #e0e6ed; border-radius: 20px; padding: 12px; cursor: pointer; text-align: left; font-weight: 600; }
         .payment-method-btn.selected { border-color: var(--primary); background: var(--primary); color: white; }
-        .payment-message-box { padding: 15px; background: #f0f2f5; border-radius: 20px; margin-top: 15px; text-align: center; font-weight: 500; }
+        .payment-detail-fields { margin-top: 15px; padding: 15px; background: #f0f2f5; border-radius: 20px; }
         .confirm-payment-btn { background: var(--secondary); color: white; padding: 16px; border: none; border-radius: 25px; font-size: 16px; font-weight: bold; width: 100%; margin-top: 20px; cursor: pointer; }
         .report-tabs { display: flex; gap: 5px; margin-bottom: 15px; }
         .report-tab { flex: 1; padding: 8px; border: none; border-radius: 20px; background: #e0e6ed; cursor: pointer; font-weight: 600; }
@@ -102,15 +102,12 @@
         hr { margin: 10px 0; opacity: 0.2; }
         .history-item { background: #f8f9fa; padding: 15px; margin-bottom: 10px; border-radius: 20px; border-left: 5px solid var(--primary); }
         .restore-banner { background: #ffc107; color: #856404; padding: 10px; border-radius: 15px; margin-bottom: 10px; text-align: center; font-size: 12px; display: none; cursor: pointer; }
-        .payment-detail-fields { display: none; }
     </style>
 </head>
 <body>
 
 <div class="app-container">
-    <div id="restore-banner" class="restore-banner" onclick="restorePreviousRide()">
-        🔄 Previous ride found! Click to restore
-    </div>
+    <div id="restore-banner" class="restore-banner" onclick="restorePreviousRide()">🔄 Previous ride found! Click to restore</div>
     
     <div class="header-section">
         <div class="header-left">
@@ -147,8 +144,8 @@
             <input id="end-loc" type="text" placeholder="Drop Off Location">
         </div>
         <div class="grid-2" style="margin-top: 5px;">
-            <button class="map-picker-btn" onclick="openMapPicker('start')">🗺️ Pickup Map</button>
-            <button class="map-picker-btn" onclick="openMapPicker('end')">🗺️ Drop Map</button>
+            <button class="map-picker-btn" onclick="openMapPicker('start', 'sri+lanka')">🗺️ Pickup Map</button>
+            <button class="map-picker-btn" onclick="openMapPicker('end', 'sri+lanka')">🗺️ Drop Map</button>
         </div>
     </div>
 
@@ -202,7 +199,7 @@
     <div class="modal-content">
         <div class="close-circle" onclick="closeMapModal()">✕</div>
         <h4 style="text-align:center;" id="map-title">Select Location</h4>
-        <input type="text" id="map-search" class="search-box" placeholder="Search location..." style="width:100%; padding:12px; border-radius:15px; border:1px solid #ddd;">
+        <input type="text" id="map-search" class="search-box" placeholder="Search location in Sri Lanka..." style="width:100%; padding:12px; border-radius:15px; border:1px solid #ddd;">
         <div id="search-results" class="search-results" style="display:none;"></div>
         <div id="map" class="map-container"></div>
         <input type="text" id="selected-address" readonly placeholder="Selected address" style="width:100%; margin-top:10px; padding:12px; border-radius:15px; background:#f0f2f5;">
@@ -213,21 +210,65 @@
     </div>
 </div>
 
-<!-- Payment Popup - Fixed UI as per image -->
+<!-- Payment Popup - Updated with all fields -->
 <div id="payment-popup" class="modal">
     <div class="modal-content payment-popup">
         <div class="close-circle" onclick="closePaymentPopup()">✕</div>
-        <h3>SELECT PAYMENT METHOD</h3>
+        <h3>💳 SELECT PAYMENT METHOD</h3>
         <div class="payment-methods">
             <div class="payment-method-btn" data-method="cash" onclick="selectPaymentMethod('cash')">💰 Cash</div>
             <div class="payment-method-btn" data-method="card" onclick="selectPaymentMethod('card')">💳 Credit/Debit Card</div>
-            <div class="payment-method-btn" data-method="mobile" onclick="selectPaymentMethod('mobile')">📱 Mobile Payment (Frimi/mCash/Genie)</div>
+            <div class="payment-method-btn" data-method="mobile" onclick="selectPaymentMethod('mobile')">📱 Mobile Payment</div>
             <div class="payment-method-btn" data-method="bank" onclick="selectPaymentMethod('bank')">🏦 Bank Transfer</div>
+            <div class="payment-method-btn" data-method="other" onclick="selectPaymentMethod('other')">📝 Other</div>
         </div>
-        <div id="payment-message-box" class="payment-message-box">
-            <span id="payment-message-text">Cash payment selected. Collect Rs. 0 from customer.</span>
+        <div id="payment-detail-fields" class="payment-detail-fields" style="display: none;">
+            <div id="cash-fields" style="display: none;"><p>💰 Cash payment selected. Collect cash from customer.</p></div>
+            <div id="card-fields" style="display: none;">
+                <input type="text" id="card-number" placeholder="Card Number (last 4 digits)" maxlength="4">
+                <div class="grid-2">
+                    <input type="text" id="card-expiry" placeholder="Expiry (MM/YY)" maxlength="5">
+                    <input type="text" id="card-cvv" placeholder="CVV" maxlength="4">
+                </div>
+                <input type="text" id="card-name" placeholder="Cardholder Name">
+            </div>
+            <div id="mobile-fields" style="display: none;">
+                <select id="mobile-provider">
+                    <option value="">Select Provider</option>
+                    <option value="Frimi">Frimi</option>
+                    <option value="mCash">mCash</option>
+                    <option value="Genie">Genie</option>
+                    <option value="Vishwa">Vishwa</option>
+                    <option value="eZ Cash">eZ Cash</option>
+                    <option value="Dialog">Dialog</option>
+                    <option value="Mobitel">Mobitel</option>
+                </select>
+                <input type="text" id="mobile-number" placeholder="Mobile Number">
+                <input type="text" id="mobile-ref" placeholder="Transaction Reference (Optional)">
+            </div>
+            <div id="bank-fields" style="display: none;">
+                <select id="bank-name">
+                    <option value="">Select Bank</option>
+                    <option value="Commercial Bank">Commercial Bank</option>
+                    <option value="HNB">HNB (Hatton National Bank)</option>
+                    <option value="Sampath Bank">Sampath Bank</option>
+                    <option value="NDB">NDB Bank</option>
+                    <option value="Peoples Bank">Peoples Bank</option>
+                    <option value="BOC">Bank of Ceylon</option>
+                    <option value="DFCC">DFCC Bank</option>
+                    <option value="Nation Trust">Nations Trust Bank</option>
+                    <option value="Union Bank">Union Bank</option>
+                    <option value="Cargills Bank">Cargills Bank</option>
+                </select>
+                <input type="text" id="bank-ref" placeholder="Reference Number / Slip No">
+                <input type="text" id="bank-branch" placeholder="Branch Name (Optional)">
+            </div>
+            <div id="other-fields" style="display: none;">
+                <input type="text" id="other-method" placeholder="Payment method name">
+                <input type="text" id="other-ref" placeholder="Reference / Note">
+            </div>
         </div>
-        <button class="confirm-payment-btn" onclick="confirmPaymentAndShowReceipt()">✅ CONFIRM & GENERATE RECEIPT</button>
+        <button class="confirm-payment-btn" onclick="confirmPaymentAndShowReceipt()">✅ CONFIRM & SHOW RECEIPT</button>
     </div>
 </div>
 
@@ -251,7 +292,7 @@
     </div>
 </div>
 
-<!-- Report Modal - Fixed UI as per image -->
+<!-- Report Modal -->
 <div id="report-modal" class="modal">
     <div class="modal-content">
         <div class="close-circle" onclick="backToS('report-modal')">✕</div>
@@ -332,6 +373,7 @@
     let currentLocationAddress = "", currentLocationLat = null, currentLocationLon = null;
     let startLocationAddress = "", endLocationAddress = "";
     let mapPickerField = null, mapObj = null, mapMarker = null;
+    let currentMapCountryFilter = "";
     
     let SETTINGS = {
         base: 100, rate: 80, waitRate: 5, nightPercent: 10,
@@ -340,29 +382,21 @@
     };
     let currentReportType = "daily";
     
-    // ========== SAVE RIDE STATE TO LOCALSTORAGE ==========
     function saveRideState() {
-        const state = {
-            isRideActive: sTime !== null,
-            startTime: sTime,
-            totalMeters: totalMeters,
-            lastLat: lastLat,
-            lastLon: lastLon,
-            currentMode: currentMode,
-            nightActive: nightActive,
-            startLocationAddress: startLocationAddress,
-            currentLocationAddress: currentLocationAddress,
-            gpsReady: gpsReady
-        };
-        localStorage.setItem('amt_ride_state', JSON.stringify(state));
-        console.log("Ride state saved:", state.isRideActive ? "Active" : "Inactive");
+        if (sTime !== null) {
+            const state = {
+                isRideActive: true, startTime: sTime, totalMeters: totalMeters,
+                lastLat: lastLat, lastLon: lastLon, currentMode: currentMode,
+                nightActive: nightActive, startLocationAddress: startLocationAddress,
+                currentLocationAddress: currentLocationAddress, gpsReady: gpsReady
+            };
+            localStorage.setItem('amt_ride_state', JSON.stringify(state));
+        } else { localStorage.removeItem('amt_ride_state'); }
     }
     
-    // ========== LOAD RIDE STATE FROM LOCALSTORAGE ==========
     function loadRideState() {
         const saved = localStorage.getItem('amt_ride_state');
         if (!saved) return false;
-        
         try {
             const state = JSON.parse(saved);
             if (state.isRideActive && state.startTime) {
@@ -376,42 +410,24 @@
     function restorePreviousRide() {
         const saved = localStorage.getItem('amt_ride_state');
         if (!saved) return;
-        
         try {
             const state = JSON.parse(saved);
-            
-            sTime = state.startTime;
-            totalMeters = state.totalMeters || 0;
-            lastLat = state.lastLat;
-            lastLon = state.lastLon;
-            currentMode = state.currentMode || "auto";
-            nightActive = state.nightActive || false;
+            sTime = state.startTime; totalMeters = state.totalMeters || 0;
+            lastLat = state.lastLat; lastLon = state.lastLon;
+            currentMode = state.currentMode || "auto"; nightActive = state.nightActive || false;
             startLocationAddress = state.startLocationAddress || "";
             currentLocationAddress = state.currentLocationAddress || "";
             gpsReady = true;
-            
             setMode(currentMode);
-            
             const nightBtn = document.getElementById('nightBtn');
-            if (nightActive) {
-                nightBtn.innerHTML = '🌙 NIGHT ON';
-                nightBtn.classList.add('night-active');
-            } else {
-                nightBtn.innerHTML = '🌙 NIGHT OFF';
-                nightBtn.classList.remove('night-active');
-            }
-            
+            if (nightActive) { nightBtn.innerHTML = '🌙 NIGHT ON'; nightBtn.classList.add('night-active'); }
+            else { nightBtn.innerHTML = '🌙 NIGHT OFF'; nightBtn.classList.remove('night-active'); }
             updateDisplay();
-            
             if (currentMode === 'auto' && currentLocationAddress) {
                 document.getElementById('current-location-address').innerHTML = currentLocationAddress;
                 document.getElementById('auto-location-card').style.backgroundColor = "#d4edda";
             }
-            
-            if (currentMode === 'manual') {
-                document.getElementById('manual-km-input').value = (totalMeters/1000).toFixed(2);
-            }
-            
+            if (currentMode === 'manual') { document.getElementById('manual-km-input').value = (totalMeters/1000).toFixed(2); }
             if (sTime) {
                 document.getElementById('startBtn').innerHTML = "⏵ ACTIVE";
                 document.getElementById('startBtn').classList.add('btn-active-anim');
@@ -419,23 +435,15 @@
                 document.body.classList.add('ride-active');
                 requestWakeLock();
                 trackRide();
-                
                 document.getElementById('gps-status').innerHTML = `📍 Restored | ${(totalMeters/1000).toFixed(2)} km`;
             }
-            
             document.getElementById('restore-banner').style.display = 'none';
             document.querySelectorAll('.mode-btn').forEach(btn => btn.style.pointerEvents = 'none');
             document.querySelectorAll('.mode-btn').forEach(btn => btn.style.opacity = '0.5');
-            
-            alert(`✅ Previous ride restored!\nDistance: ${(totalMeters/1000).toFixed(2)} km\nYou can continue tracking.`);
-            
-        } catch(e) {
-            console.error("Restore error:", e);
-            localStorage.removeItem('amt_ride_state');
-        }
+            alert(`✅ Previous ride restored!\nDistance: ${(totalMeters/1000).toFixed(2)} km`);
+        } catch(e) { localStorage.removeItem('amt_ride_state'); }
     }
     
-    // ========== DISTANCE ==========
     function calculateDistanceMeters(lat1, lon1, lat2, lon2) {
         const R = 6371000;
         const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -467,7 +475,6 @@
         return Math.max(0, Math.round(total));
     }
     
-    // ========== GPS ==========
     function startGPS() {
         const statusDiv = document.getElementById('gps-status');
         if(!navigator.geolocation) { statusDiv.className = 'gps-status gps-error'; statusDiv.innerHTML = '❌ GPS not supported'; return; }
@@ -532,7 +539,6 @@
         );
     }
     
-    // ========== MODE ==========
     function setMode(mode) {
         currentMode = mode;
         document.getElementById('mode-auto').classList.remove('active');
@@ -567,7 +573,6 @@
         updateDisplay();
     }
     
-    // ========== AUTO LOCATION ==========
     function getCurrentLocationAddress() {
         if(!navigator.geolocation) return;
         navigator.geolocation.getCurrentPosition(async (pos) => {
@@ -581,24 +586,26 @@
     
     async function reverseGeocode(lat, lon) {
         try {
-            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&accept-language=en`);
+            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&accept-language=en&countrycodes=lk`);
             const data = await res.json();
             currentLocationAddress = data.display_name || `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
             document.getElementById('current-location-address').innerHTML = currentLocationAddress.substring(0, 80);
         } catch(e) { currentLocationAddress = `${lat.toFixed(4)}, ${lon.toFixed(4)}`; }
     }
     
-    // ========== MAP PICKER ==========
-    async function searchLocation(query) {
+    async function searchLocation(query, countryFilter) {
         try {
-            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=6&countrycodes=lk`);
+            let url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=8`;
+            if (countryFilter) url += `&countrycodes=${countryFilter}`;
+            const res = await fetch(url);
             return await res.json();
         } catch(e) { return []; }
     }
     
-    function openMapPicker(field) {
+    function openMapPicker(field, countryFilter) {
         mapPickerField = field;
-        document.getElementById('map-title').innerText = field === 'start' ? 'Pickup Location' : 'Drop Location';
+        currentMapCountryFilter = countryFilter || "";
+        document.getElementById('map-title').innerText = field === 'start' ? 'Pickup Location (Sri Lanka)' : 'Drop Location (Sri Lanka)';
         document.getElementById('map-modal').style.display = 'flex';
         
         setTimeout(() => {
@@ -616,17 +623,19 @@
                 });
             }
             const searchInput = document.getElementById('map-search');
+            searchInput.placeholder = "Search city/town in Sri Lanka...";
             const resultsDiv = document.getElementById('search-results');
             searchInput.oninput = async function() {
                 const q = this.value.trim();
                 if(q.length < 2) { resultsDiv.style.display = 'none'; return; }
-                const data = await searchLocation(q);
+                const data = await searchLocation(q + " Sri Lanka", "lk");
                 resultsDiv.innerHTML = '';
-                if(data.length === 0) resultsDiv.innerHTML = '<div class="search-item">No results</div>';
+                if(data.length === 0) resultsDiv.innerHTML = '<div class="search-item">No results in Sri Lanka</div>';
                 data.forEach(place => {
                     const item = document.createElement('div');
                     item.className = 'search-item';
-                    item.innerText = place.display_name.substring(0, 50);
+                    let displayName = place.display_name.substring(0, 60);
+                    item.innerText = displayName;
                     item.onclick = () => {
                         mapObj.setView([place.lat, place.lon], 16);
                         mapMarker.setLatLng([place.lat, place.lon]);
@@ -643,7 +652,7 @@
     
     async function reverseMapGeocode(lat, lon) {
         try {
-            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&accept-language=en`);
+            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&accept-language=en&countrycodes=lk`);
             const data = await res.json();
             document.getElementById('selected-address').value = data.display_name || `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
         } catch(e) { document.getElementById('selected-address').value = `${lat.toFixed(4)}, ${lon.toFixed(4)}`; }
@@ -671,7 +680,6 @@
         if(mapObj) mapObj.remove(); 
     }
     
-    // ========== MANUAL ==========
     function manualAddDistance(km) { 
         if(!sTime) { alert("Start ride first!"); return; }
         if(currentMode !== 'manual') { alert("Switch to Manual KM Mode!"); return; }
@@ -690,7 +698,6 @@
         if(!isNaN(val) && val >= 0) { totalMeters = val * 1000; updateDisplay(); saveRideState(); } 
     }
     
-    // ========== RIDE ==========
     async function startRide() {
         if(sTime) { alert("Ride already active!"); return; }
         
@@ -730,6 +737,8 @@
             trackRide();
         } else if(currentMode === 'gps') {
             totalMeters = 0;
+            startLocationAddress = document.getElementById('start-loc').value;
+            endLocationAddress = document.getElementById('end-loc').value;
             lastLat = null; lastLon = null;
             setTimeout(() => {
                 if(navigator.geolocation) {
@@ -741,6 +750,8 @@
             }, 100);
             trackRide();
         } else {
+            startLocationAddress = document.getElementById('start-loc').value;
+            endLocationAddress = document.getElementById('end-loc').value;
             totalMeters = (parseFloat(document.getElementById('manual-km-input').value) || 0) * 1000;
         }
         document.getElementById('startBtn').innerHTML = "⏵ ACTIVE";
@@ -804,15 +815,16 @@
         return `${fy.toString().slice(-2)}${n.toLocaleString('en',{month:'short'}).toUpperCase()}-${c.toString().padStart(8,'0')}`;
     }
     
-    // ========== PAYMENT ==========
     function openPaymentPopup() {
         selectedMethod = "cash";
         document.querySelectorAll('.payment-method-btn').forEach(btn => btn.classList.remove('selected'));
         document.querySelector('.payment-method-btn[data-method="cash"]')?.classList.add('selected');
-        
-        const fare = pendingRideData ? pendingRideData.fare : 0;
-        document.getElementById('payment-message-text').innerHTML = `Cash payment selected. Collect Rs. ${fare} from customer.`;
-        
+        document.getElementById('payment-detail-fields').style.display = 'block';
+        document.getElementById('cash-fields').style.display = 'block';
+        document.getElementById('card-fields').style.display = 'none';
+        document.getElementById('mobile-fields').style.display = 'none';
+        document.getElementById('bank-fields').style.display = 'none';
+        document.getElementById('other-fields').style.display = 'none';
         document.getElementById('payment-popup').style.display = 'flex';
     }
     
@@ -820,35 +832,47 @@
         selectedMethod = method;
         document.querySelectorAll('.payment-method-btn').forEach(btn => btn.classList.remove('selected'));
         document.querySelector(`.payment-method-btn[data-method="${method}"]`)?.classList.add('selected');
-        
-        const fare = pendingRideData ? pendingRideData.fare : 0;
-        let message = "";
-        
-        switch(method) {
-            case 'cash':
-                message = `Cash payment selected. Collect Rs. ${fare} from customer.`;
-                break;
-            case 'card':
-                message = `Card payment selected. Please swipe/tap card.`;
-                break;
-            case 'mobile':
-                message = `Mobile payment selected. Show QR code to customer.`;
-                break;
-            case 'bank':
-                message = `Bank transfer selected. Share account details.`;
-                break;
-            default:
-                message = `Payment selected.`;
+        document.getElementById('cash-fields').style.display = 'none';
+        document.getElementById('card-fields').style.display = 'none';
+        document.getElementById('mobile-fields').style.display = 'none';
+        document.getElementById('bank-fields').style.display = 'none';
+        document.getElementById('other-fields').style.display = 'none';
+        if(method === 'cash') document.getElementById('cash-fields').style.display = 'block';
+        if(method === 'card') document.getElementById('card-fields').style.display = 'block';
+        if(method === 'mobile') document.getElementById('mobile-fields').style.display = 'block';
+        if(method === 'bank') document.getElementById('bank-fields').style.display = 'block';
+        if(method === 'other') document.getElementById('other-fields').style.display = 'block';
+    }
+    
+    function getPaymentInfo() {
+        switch(selectedMethod) {
+            case 'cash': return { method: 'Cash', detail: '' };
+            case 'card': 
+                let cardDetail = "";
+                if(document.getElementById('card-number')?.value) cardDetail += `****${document.getElementById('card-number').value}`;
+                if(document.getElementById('card-name')?.value) cardDetail += ` - ${document.getElementById('card-name').value}`;
+                return { method: 'Card', detail: cardDetail || 'Card payment' };
+            case 'mobile': 
+                let mobileDetail = "";
+                if(document.getElementById('mobile-provider')?.value) mobileDetail += document.getElementById('mobile-provider').value;
+                if(document.getElementById('mobile-number')?.value) mobileDetail += ` ${document.getElementById('mobile-number').value}`;
+                return { method: 'Mobile Payment', detail: mobileDetail || 'Mobile payment' };
+            case 'bank': 
+                let bankDetail = "";
+                if(document.getElementById('bank-name')?.value) bankDetail += document.getElementById('bank-name').value;
+                if(document.getElementById('bank-ref')?.value) bankDetail += ` - Ref: ${document.getElementById('bank-ref').value}`;
+                return { method: 'Bank Transfer', detail: bankDetail || 'Bank transfer' };
+            case 'other': 
+                return { method: document.getElementById('other-method')?.value || 'Other', detail: document.getElementById('other-ref')?.value || '' };
+            default: return { method: 'Cash', detail: '' };
         }
-        
-        document.getElementById('payment-message-text').innerHTML = message;
     }
     
     function closePaymentPopup() { document.getElementById('payment-popup').style.display = 'none'; }
     
     function confirmPaymentAndShowReceipt() {
         if(!pendingRideData) return;
-        pendingRideData.payment = { method: selectedMethod, detail: '' };
+        pendingRideData.payment = getPaymentInfo();
         saveRide(pendingRideData);
         showReceipt(pendingRideData, false);
         closePaymentPopup();
@@ -861,13 +885,6 @@
     function showReceipt(ride, isDuplicate) {
         let sub = (ride.manualFare > 0) ? ride.manualFare : (SETTINGS.base + (Math.max(0, ride.km - 1) * SETTINGS.rate));
         let waitC = ride.wait * SETTINGS.waitRate;
-        
-        let methodDisplay = "";
-        if(ride.payment && ride.payment.method === 'cash') methodDisplay = "Cash";
-        else if(ride.payment && ride.payment.method === 'card') methodDisplay = "Card";
-        else if(ride.payment && ride.payment.method === 'mobile') methodDisplay = "Mobile";
-        else if(ride.payment && ride.payment.method === 'bank') methodDisplay = "Bank Transfer";
-        else methodDisplay = "Cash";
         
         let duplicateHtml = isDuplicate ? '<div class="duplicate-badge">📋 DUPLICATE / COPY</div>' : '';
         let rows = duplicateHtml;
@@ -882,7 +899,7 @@
         if(ride.nightUsed && ride.manualFare === 0) rows += `<div class="r-row"><span>Night(${SETTINGS.nightPercent}%):</span><b>+${Math.round(ride.fare - (sub + waitC - ride.disc))}</b></div>`;
         if(ride.disc > 0) rows += `<div class="r-row"><span>Discount:</span><b>-Rs.${ride.disc}</b></div>`;
         rows += `<div class="r-row"><span>Mode:</span><b>${ride.mode}</b></div>
-                 <div class="r-row"><span>Payment:</span><b>${methodDisplay}</b></div>`;
+                 <div class="r-row"><span>Payment:</span><b>${ride.payment.method} ${ride.payment.detail}</b></div>`;
         document.getElementById('receipt-body').innerHTML = rows;
         document.getElementById('receipt-total').innerHTML = ride.fare.toFixed(2);
         document.getElementById('receipt-header').innerText = SETTINGS.receiptName;
@@ -891,7 +908,7 @@
         document.getElementById('receipt-words').innerHTML = words;
         
         const qrDate = new Date(ride.time).toLocaleDateString();
-        const qrText = `${ride.id}|${qrDate}|Rs.${ride.fare.toFixed(2)}|${methodDisplay}`;
+        const qrText = `${ride.id}|${qrDate}|Rs.${ride.fare.toFixed(2)}|${ride.payment.method}`;
         const qrContainer = document.getElementById('receipt-qr');
         qrContainer.innerHTML = "";
         new QRCode(qrContainer, { text: qrText, width: 85, height: 85 });
@@ -899,7 +916,6 @@
         document.getElementById('receiptModal').style.display = "flex";
     }
     
-    // ========== SHARE ==========
     async function shareWA() {
         try {
             const el = document.getElementById('receipt-view');
@@ -961,6 +977,7 @@
         document.querySelectorAll('.mode-btn').forEach(btn => btn.style.opacity = '1');
         
         sTime = null; totalMeters = 0; lastLat = null; lastLon = null;
+        startLocationAddress = ""; endLocationAddress = "";
         document.getElementById('startBtn').innerHTML = "START RIDE";
         document.getElementById('startBtn').classList.remove('btn-active-anim');
         document.getElementById('startBtn').disabled = false;
@@ -983,7 +1000,6 @@
         else { gpsReady = true; document.getElementById('startBtn').disabled = false; }
     }
     
-    // ========== SETTINGS ==========
     function loadSettings() {
         const saved = localStorage.getItem('amt_settings');
         if(saved) { try { const parsed = JSON.parse(saved); SETTINGS = {...SETTINGS, ...parsed}; } catch(e){} }
@@ -998,7 +1014,6 @@
         if(SETTINGS.logo) document.getElementById('main-logo-area').innerHTML = `<img src="${SETTINGS.logo}" style="width:100%; height:100%; object-fit:cover;">`;
         updateDisplay();
         startGPS();
-        
         loadRideState();
     }
     
@@ -1014,7 +1029,6 @@
         if(file) { const r = new FileReader(); r.onload = e => saveLogo(e.target.result); r.readAsDataURL(file); } else saveLogo(SETTINGS.logo);
     }
     
-    // ========== HISTORY & REPORTS ==========
     function updateHistoryList() {
         const rides = JSON.parse(localStorage.getItem('rides')||'[]');
         const c = document.getElementById('history-list');
@@ -1077,12 +1091,10 @@
             title = `📅 Yearly Report - ${now.getFullYear()}`;
         }
         
-        // Calculate totals by payment method
         const paymentTotals = {};
         rides.forEach(ride => {
             const method = ride.payment?.method || 'Cash';
-            const methodDisplay = method === 'cash' ? 'Cash' : (method === 'card' ? 'Card' : (method === 'mobile' ? 'Mobile' : (method === 'bank' ? 'Bank Transfer' : method)));
-            paymentTotals[methodDisplay] = (paymentTotals[methodDisplay] || 0) + ride.fare;
+            paymentTotals[method] = (paymentTotals[method] || 0) + ride.fare;
         });
         
         const total = rides.reduce((s, r) => s + r.fare, 0);
@@ -1118,27 +1130,19 @@
         const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv])); a.download = `report_${currentReportType}.csv`; a.click();
     }
     
-    // ========== LOGIN ==========
     let loginAttempts = 0;
     let lockUntil = null;
     
     function checkLogin() {
         const password = document.getElementById('admin-pass').value;
-        
         if (lockUntil && Date.now() < lockUntil) {
             const waitMinutes = Math.ceil((lockUntil - Date.now()) / 60000);
             alert(`Too many attempts! Try again in ${waitMinutes} minutes`);
             return false;
         }
-        
-        if (lockUntil && Date.now() >= lockUntil) {
-            loginAttempts = 0;
-            lockUntil = null;
-        }
-        
+        if (lockUntil && Date.now() >= lockUntil) { loginAttempts = 0; lockUntil = null; }
         if (password === SETTINGS.password) {
-            loginAttempts = 0;
-            lockUntil = null;
+            loginAttempts = 0; lockUntil = null;
             closeM('login-modal');
             document.getElementById('settings-modal').style.display = 'flex';
             return true;
