@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+
 <html lang="si">
 <head>
     <meta charset="UTF-8">
@@ -41,7 +41,7 @@
             --radius: 20px;
             --radius-lg: 28px;
             --radius-xl: 40px;
-            --transition: all 0.2s ease;
+            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, sans-serif; background: linear-gradient(145deg, #e2e8f0 0%, #cbd5e1 100%); min-height: 100vh; padding: 16px; display: flex; justify-content: center; align-items: center; }
@@ -71,9 +71,20 @@
         .mode-btn { flex: 1; padding: 10px 8px; border-radius: 32px; border: 1.5px solid #e2e8f0; background: white; cursor: pointer; font-weight: 600; font-size: 11px; text-align: center; transition: var(--transition); color: var(--dark); }
         .mode-btn.active { background: var(--primary-gradient); color: white; border-color: transparent; box-shadow: var(--shadow); }
         
-        /* Structured Billing Form to Prevent Overlapping (image_08a649.png & image_de649c.png Fix) */
-        .billing-card { background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 28px; padding: 18px; margin: 18px 0; display: flex; flex-direction: column; gap: 14px; box-shadow: inset 0 1px 2px rgba(0,0,0,0.02); }
-        .billing-title { font-size: 12px; font-weight: 800; color: var(--gray); text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px; }
+        /* Modern Collapsible Accordion Cards for Billing & Delivery to save screen space (image_94c01c.png & image_94bba7.png Fix) */
+        .collapsible-card { background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 28px; margin: 16px 0; overflow: hidden; transition: var(--transition); }
+        .collapsible-header { padding: 16px 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none; transition: var(--transition); }
+        .collapsible-header:active { background: #cbd5e122; }
+        .collapsible-title { font-size: 12px; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px; }
+        .collapsible-icon { font-size: 12px; color: var(--gray); transition: transform 0.25s ease; }
+        .collapsible-content { max-height: 0; opacity: 0; padding: 0 20px; overflow: hidden; transition: max-height 0.25s ease-out, opacity 0.2s ease, padding 0.25s ease; display: flex; flex-direction: column; gap: 14px; }
+        
+        /* Open States for Collapsible Accordions */
+        .collapsible-card.open { border-color: var(--primary-light); box-shadow: var(--shadow); }
+        .collapsible-card.open .collapsible-header { border-bottom: 1.5px solid #e2e8f0; }
+        .collapsible-card.open .collapsible-icon { transform: rotate(180deg); color: var(--primary); }
+        .collapsible-card.open .collapsible-content { max-height: 500px; opacity: 1; padding: 20px; }
+        
         .input-group { display: flex; flex-direction: column; gap: 6px; }
         .input-group label { font-size: 11px; font-weight: 600; color: var(--gray); margin-left: 4px; }
         
@@ -81,13 +92,13 @@
         .wait-select-wrapper:focus-within { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(26, 74, 158, 0.1); }
         .wait-select-wrapper select { border: none; background: transparent; padding: 0; margin: 0; height: 100%; width: 100%; outline: none; font-size: 14px; color: var(--dark); }
         
+        /* Visual alignment for Sri Lanka layout */
         .fare-card { background: linear-gradient(145deg, #ffffff, #f8fafc); border-radius: var(--radius-lg); padding: 20px; margin: 16px 0; border: 1.5px solid #e2e8f0; box-shadow: var(--shadow); text-align: center; }
         .fare-row { display: flex; justify-content: space-between; align-items: center; gap: 20px; }
         .fare-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .fare-item small { font-size: 11px; font-weight: 700; color: var(--gray); text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.5px; }
         .fare-item .display-value { font-size: 42px; font-weight: 800; color: #1e293b; line-height: 1; margin-bottom: 4px; }
         
-        /* Perfect GPS Ready badge and Blue Prominent Fare Display from image_de649c.png */
         .display-fare-currency { font-size: 24px; font-weight: 800; color: #2563eb; line-height: 1; margin-bottom: 2px; }
         .display-fare-value { font-size: 40px; font-weight: 800; color: #2563eb; line-height: 1; }
         
@@ -109,9 +120,6 @@
         
         .map-picker-btn { background: var(--primary-gradient); color: white; border: none; padding: 12px; border-radius: 24px; font-size: 12px; font-weight: 600; cursor: pointer; width: 100%; transition: var(--transition); }
         .map-picker-btn:active { transform: scale(0.97); }
-        
-        .delivery-fields { background: rgba(26, 74, 158, 0.04); border-radius: 24px; padding: 16px; margin: 12px 0; display: none; border: 1px solid rgba(26, 74, 158, 0.08); }
-        .delivery-fields h4 { color: var(--primary); margin-bottom: 12px; font-size: 14px; font-weight: 600; }
         
         .btn-main-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 20px; }
         .btn-start { background: #2ecc71; border: none; border-radius: 34px; font-size: 14px; font-weight: 700; color: white; cursor: pointer; padding: 16px; transition: var(--transition); box-shadow: var(--shadow); text-align: center; }
@@ -262,7 +270,7 @@
 
 <!-- Main Driver Interface Container -->
 <div id="main-driver-view" class="app-container">
-    <div id="restore-banner" class="restore-banner" onclick="restorePreviousRide()">🔄 පූර්ව ගමනක් හමු විය! යළි පිහිටුවන්න ක්ලික් කරන්න</div>
+    <div id="restore-banner" class="restore-banner" onclick="restorePreviousRide()">🔄 කලින් ගිය ගමනක් හමු විය! යළි පිහිටුවන්න ක්ලික් කරන්න</div>
     
     <div class="header-section">
         <div class="header-left">
@@ -314,21 +322,30 @@
         </div>
     </div>
 
-    <!-- Delivery specific profile fields -->
-    <div id="delivery-fields" class="delivery-fields">
-        <h4>📦 පැටවුම්කරුගේ විස්තර (Pickup Details)</h4>
-        <div class="grid-2" style="margin-bottom: 10px;">
-            <input type="text" id="pickup-name" placeholder="නම (Name)">
-            <input type="tel" id="pickup-phone" placeholder="දුරකථන අංකය (Phone)">
+    <!-- Delivery details configured inside an Accordion Panel to save screen space (image_94bba7.png Fix) -->
+    <div id="delivery-accordion" class="collapsible-card" style="display: none;">
+        <div class="collapsible-header" onclick="toggleAccordion('delivery-accordion')">
+            <div class="collapsible-title">📦 Delivery & Pickup Details</div>
+            <span class="collapsible-icon">▼</span>
         </div>
-        <h4>📍 ලබන්නාගේ විස්තර (Delivery Details)</h4>
-        <div class="grid-2">
-            <input type="text" id="delivery-name" placeholder="නම (Name)">
-            <input type="tel" id="delivery-phone" placeholder="දුරකථන අංකය (Phone)">
+        <div class="collapsible-content">
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <h4 style="font-size: 11px; font-weight: bold; color: var(--primary);">📦 Pickup භාරගන්නාගේ විස්තර</h4>
+                <div class="grid-2">
+                    <input type="text" id="pickup-name" placeholder="නම (Name)">
+                    <input type="tel" id="pickup-phone" placeholder="දුරකථන අංකය (Phone)">
+                </div>
+                
+                <h4 style="font-size: 11px; font-weight: bold; color: var(--primary); margin-top: 8px;">📍 Delivery භාරදෙන්නාගේ විස්තර</h4>
+                <div class="grid-2">
+                    <input type="text" id="delivery-name" placeholder="නම (Name)">
+                    <input type="tel" id="delivery-phone" placeholder="දුරකථන අංකය (Phone)">
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Live Meter Card Dashboard -->
+    <!-- Live Odometer Card Dashboard -->
     <div class="fare-card">
         <div class="fare-row">
             <div class="fare-item">
@@ -345,12 +362,12 @@
         </div>
         <div id="gps-status" class="gps-status">📍 GPS සම්බන්ධතාවය පරීක්ෂා කරමින්...</div>
         
-        <!-- Manual odometer adjustment system -->
+        <!-- Manual odometer adjustment system with realtime sync calculation -->
         <div id="manual-controls" style="display:none;">
             <div class="manual-control">
                 <button class="manual-btn" onclick="manualAddDistance(-1)">-1</button>
                 <button class="manual-btn" onclick="manualAddDistance(-0.5)">-0.5</button>
-                <input type="number" id="manual-km-input" class="manual-input" value="0.00" step="0.1">
+                <input type="number" id="manual-km-input" class="manual-input" value="0.00" step="0.1" oninput="manualKmInputChanged()">
                 <button class="manual-btn" onclick="manualAddDistance(0.5)">+0.5</button>
                 <button class="manual-btn" onclick="manualAddDistance(1)">+1</button>
             </div>
@@ -362,31 +379,35 @@
 
     <!-- Dynamic Odometer Maps Redirection Trigger -->
     <div id="nav-container" style="display:none; margin-bottom:15px;">
-        <button class="map-picker-btn" style="background:linear-gradient(135deg,#2563eb,#1d4ed8);" onclick="openPhoneNavigation()">🧭 සිතියම් මඟපෙන්වීම අරඹන්න (NAVIGATE)</button>
+        <button class="map-picker-btn" style="background:linear-gradient(135deg,#2563eb,#1d4ed8);" onclick="openPhoneNavigation()">🧭 සිතියම පෙන්වන්න (NAVIGATE)</button>
     </div>
 
-    <!-- Structured Billing Form to Prevent Overlapping (image_08a649.png & image_de649c.png Fix) -->
-    <div class="billing-card">
-        <div class="billing-title">💳 BILLING DETAILS & ADJUSTMENTS</div>
-        
-        <div class="input-group">
-            <input type="tel" id="mobile" placeholder="පාරිභෝගික දුරකථන අංකය (අත්‍යවශ්‍ය නොවේ)">
+    <!-- Billing Details & Adjustments inside a beautifully structured collapsible Accordion Card (image_94c01c.png Fix) -->
+    <div id="billing-accordion" class="collapsible-card">
+        <div class="collapsible-header" onclick="toggleAccordion('billing-accordion')">
+            <div class="collapsible-title">💳 Billing Details & Adjustments</div>
+            <span class="collapsible-icon">▼</span>
         </div>
-        
-        <div class="grid-2">
+        <div class="collapsible-content">
             <div class="input-group">
-                <input type="number" id="manual-fare" placeholder="Manual Fare (LKR)" oninput="updateDisplay()">
+                <input type="tel" id="mobile" placeholder="පාරිභෝගික දුරකථන අංකය (අත්‍යවශ්‍ය නොවේ)">
             </div>
-            <div class="wait-select-wrapper">
-                <select id="wait-select" onchange="updateDisplay()">
-                    <option value="0">⏱️ පොරොත්තු: 0 min</option>
-                    <script>for(let i=1;i<=120;i++) document.write(`<option value="${i}">⏱️ පොරොත්තු: ${i} min</option>`);</script>
-                </select>
+            
+            <div class="grid-2">
+                <div class="input-group">
+                    <input type="number" id="manual-fare" placeholder="Manual Fare (LKR)" oninput="updateDisplay()">
+                </div>
+                <div class="wait-select-wrapper">
+                    <select id="wait-select" onchange="updateDisplay()">
+                        <option value="0">⏱️ පොරොත්තු කාලය: 0 min</option>
+                        <script>for(let i=1;i<=120;i++) document.write(`<option value="${i}">⏱️ පොරොත්තු කාලය: ${i} min</option>`);</script>
+                    </select>
+                </div>
             </div>
-        </div>
-        
-        <div class="input-group">
-            <input type="number" id="discount-input" placeholder="වට්ටම් / Discount (LKR)" oninput="updateDisplay()">
+            
+            <div class="input-group">
+                <input type="number" id="discount-input" placeholder="වට්ටම් / Discount (LKR)" oninput="updateDisplay()">
+            </div>
         </div>
     </div>
 
@@ -415,29 +436,29 @@
     </div>
     <div id="tracking-map-canvas" class="tracking-map"></div>
     <div class="tracking-info">
-        <h3 style="color:var(--primary); font-weight:800; border-bottom:2px solid #e2e8f0; padding-bottom:6px;">📊 TRIP IN PROGRESS SUMMARY</h3>
+        <h3 style="color:var(--primary); font-weight:800; border-bottom:2px solid #e2e8f0; padding-bottom:6px;">📊 සක්‍රීය ගමනේ විස්තර</h3>
         <div class="tracking-row">
             <span>Tracking Trip ID:</span>
             <strong id="track-trip-id" style="color:var(--primary);">N/A</strong>
         </div>
         <div class="tracking-row">
-            <span>Ride State/Status:</span>
+            <span>ගමනේ තත්ත්වය:</span>
             <strong id="track-status" style="color:var(--secondary-dark);">🟢 Active Odometer Track</strong>
         </div>
         <div class="tracking-row">
-            <span>Trip Target Destination:</span>
+            <span>ගමනාන්තය:</span>
             <strong id="track-destination">Colombo</strong>
         </div>
         <div class="tracking-row">
-            <span>Current Estimated Fare:</span>
+            <span>වත්මන් ආසන්න ගාස්තුව:</span>
             <strong id="track-est-fare" style="font-size:18px; color:var(--accent-dark);">LKR 0.00</strong>
         </div>
         <div class="tracking-row">
-            <span>Distance Traveled:</span>
+            <span>ගමන් කළ දුර ප්‍රමාණය:</span>
             <strong id="track-est-distance">0.00 km</strong>
         </div>
         <div class="tracking-row">
-            <span>Odometer Transmission Time:</span>
+            <span>අවසන් වරට යාවත්කාලීන වූයේ:</span>
             <span id="track-last-update" style="font-weight:600; color:var(--gray);">Just Now</span>
         </div>
         <button class="confirm-payment-btn" style="background:var(--primary-gradient); margin-top:10px;" onclick="location.reload()">⟳ REFRESH STREAM</button>
@@ -470,14 +491,14 @@
         <div class="close-circle" onclick="closePaymentPopup()">✕</div>
         <h3 style="text-align:center; margin-bottom:20px; font-weight:800; color:var(--primary);">💳 TRIP PAYMENT CHANNEL</h3>
         <div class="payment-methods">
-            <div class="payment-method-btn" data-method="cash" onclick="selectPaymentMethod('cash')">💰 Cash Transactions</div>
-            <div class="payment-method-btn" data-method="card" onclick="selectPaymentMethod('card')">💳 Credit / Debit Card</div>
-            <div class="payment-method-btn" data-method="mobile" onclick="selectPaymentMethod('mobile')">📱 Mobile Wallet</div>
-            <div class="payment-method-btn" data-method="bank" onclick="selectPaymentMethod('bank')">🏦 Bank Wire Transfer</div>
-            <div class="payment-method-btn" data-method="other" onclick="selectPaymentMethod('other')">📝 වෙනත් ක්‍රම (Other Options)</div>
+            <div class="payment-method-btn" data-method="cash" onclick="selectPaymentMethod('cash')">💰 මුදලින් ගෙවීම් (Cash)</div>
+            <div class="payment-method-btn" data-method="card" onclick="selectPaymentMethod('card')">💳 කාඩ්පත් ගෙවීම් (Card)</div>
+            <div class="payment-method-btn" data-method="mobile" onclick="selectPaymentMethod('mobile')">📱 Mobile wallet</div>
+            <div class="payment-method-btn" data-method="bank" onclick="selectPaymentMethod('bank')">🏦 බැංකු ගෙවීම්</div>
+            <div class="payment-method-btn" data-method="other" onclick="selectPaymentMethod('other')">📝 වෙනත් ක්‍රමවේද</div>
         </div>
         <div id="payment-detail-fields" class="payment-detail-fields" style="display: none;">
-            <div id="cash-fields" style="display: none;"><p style="font-weight:600; text-align:center; color:var(--secondary-dark);">💰 මුදල් ගෙවීම තහවුරුයි. පාරිභෝගිකයාගෙන් මුදල් ලබාගන්න.</p></div>
+            <div id="cash-fields" style="display: none;"><p style="font-weight:600; text-align:center; color:var(--secondary-dark);">💰 මුදල් ගෙවීම තහවුරුයි! පාරිභෝගිකයාගෙන් මුදල් ලබා ගන්න.</p></div>
             <div id="card-fields" style="display: none;">
                 <input type="text" id="card-number" placeholder="Last 4 Card Digits" maxlength="4">
                 <div class="grid-2" style="margin-top:8px; margin-bottom:8px;">
@@ -887,7 +908,7 @@
             <div class="r-total">TOTAL RECEIVABLE: Rs. <span id="receipt-total">0.00</span></div>
             <div class="r-words" id="receipt-words" style="font-size: 8.5pt; text-align:center; margin: 8px 0; font-weight:bold; color:var(--dark);"></div>
             <div id="receipt-qr" style="display:flex; justify-content:center; margin:15px 0;"></div>
-            <div class="r-divider" style="text-align:center; font-weight:bold; font-size: 8.5pt; border-top: 1.5px dashed #ccc; padding-top: 5px;">Advance Meeter Taxi සමඟ ගමන් කිරීම ගැන ස්තූතියි! 🚕</div>
+            <div class="r-divider" style="text-align:center; font-weight:bold; font-size: 8.5pt; border-top: 1.5px dashed #ccc; padding-top: 5px;">Advance Meeter Taxi sobat pravas kelyabaddal dhanyawad! 🚕</div>
             <div class="receipt-seal"></div>
         </div>
         <div class="receipt-btns no-print">
@@ -914,21 +935,21 @@
 <div id="map-modal" class="modal">
     <div class="modal-content" style="max-width: 480px; border-radius: 28px; padding: 20px;">
         <div class="close-circle" onclick="closeMapModal()">✕</div>
-        <h4 id="map-title" style="text-align:center; margin-bottom: 12px; font-weight:800; color:var(--primary);">සිතියමෙන් ස්ථානය තෝරන්න (Select Location)</h4>
+        <h4 id="map-title" style="text-align:center; margin-bottom: 12px; font-weight:800; color:var(--primary);">Nasheyavarun jaga noda (Select Location)</h4>
         
         <!-- Floating Autocomplete search container (image_de649c.png Layout Standard) -->
         <div class="floating-search-wrapper">
-            <input type="text" id="map-search" placeholder="ස්ථානය සොයන්න (Search Sri Lanka)..." style="width:100%; padding:14px; border-radius:20px; border: 1.5px solid #e2e8f0;">
+            <input type="text" id="map-search" placeholder="Jaga Shodha (Search Sri Lanka)..." style="width:100%; padding:14px; border-radius:20px; border: 1.5px solid #e2e8f0;">
             <div id="search-results" class="floating-results-dropdown"></div>
         </div>
 
         <!-- Controlled Map Canvas -->
         <div id="map" class="map-container"></div>
         
-        <input id="selected-address" readonly placeholder="තෝරාගත් ස්ථානය (Selected Address)" style="width:100%; margin-top:10px; padding:12px; border-radius:20px; background:var(--gray-bg); border: 1.5px solid #e2e8f0;">
+        <input id="selected-address" readonly placeholder="Nivadeli Jaga (Selected Address)" style="width:100%; margin-top:10px; padding:12px; border-radius:20px; background:var(--gray-bg); border: 1.5px solid #e2e8f0;">
         <div class="grid-2" style="margin-top:12px;">
-            <button style="background:var(--secondary-gradient); color:white; border:none; padding:14px; border-radius:25px; font-weight:bold; cursor:pointer;" onclick="useMapLocation()">✓ ස්ථානය තහවුරු කරන්න</button>
-            <button style="background:var(--primary-gradient); color:white; border:none; padding:14px; border-radius:25px; font-weight:bold; cursor:pointer;" onclick="getCurrentMapLocation()">📍 මගේ ස්ථානය</button>
+            <button style="background:var(--secondary-gradient); color:white; border:none; padding:14px; border-radius:25px; font-weight:bold; cursor:pointer;" onclick="useMapLocation()">✓ Jaga nischit kara</button>
+            <button style="background:var(--primary-gradient); color:white; border:none; padding:14px; border-radius:25px; font-weight:bold; cursor:pointer;" onclick="getCurrentMapLocation()">📍 Majhi Jaga</button>
         </div>
     </div>
 </div>
@@ -940,16 +961,17 @@
         <div style="text-align:center;">
             <div class="logo-area" style="margin:0 auto 15px; width:60px; height:60px; font-size:32px;">🚕</div>
             <h3>ADMIN LOGIN PANEL</h3>
-            <p style="color:#64748b;">සැකසුම් සඳහා මුරපදය ඇතුළත් කරන්න</p>
+            <p style="color:#64748b;">Settings sathi password taka</p>
         </div>
-        <input type="password" id="admin-pass" placeholder="මුරපදය (Enter Password)" style="text-align:center; margin-top:15px;">
+        <input type="password" id="admin-pass" placeholder="Password taka" style="text-align:center; margin-top:15px;">
         <button class="login-btn" style="background:var(--primary-gradient); color:white; width:100%; margin-top:15px; padding:14px; border:none; border-radius:30px; font-weight:bold; cursor:pointer;" onclick="checkLogin()">LOGIN</button>
-        <button class="settings-menu-btn secondary" style="margin-top:10px; width: 100%;" onclick="closeM('login-modal')">අවලංගු කරන්න (CANCEL)</button>
+        <button class="settings-menu-btn secondary" style="margin-top:10px; width: 100%;" onclick="closeM('login-modal')">Cancel kara (CANCEL)</button>
     </div>
 </div>
 
 <!-- System Scripts Section -->
 <script>
+    // ========== SYSTEM LOG (SYSTEM LOGS) ==========
     let systemLogs = JSON.parse(localStorage.getItem('system_logs') || '[]');
     function addSystemLog(type, message, details) {
         let log = { id: Date.now(), date: new Date().toISOString(), type, message, details: details || '' };
@@ -989,6 +1011,7 @@
         showToast('Administrative Log CSV Downloaded', 'success');
     }
     
+    // ========== WAKE LOCK (WAKELOCK) ==========
     let wakeLock = null;
     async function requestWakeLock() {
         if ('wakeLock' in navigator) {
@@ -1006,6 +1029,7 @@
         }
     }
 
+    // ========== NUMBER TO WORDS (AKSHARI COGGU) ==========
     function numberToWords(num) {
         if (num === 0) return "Zero Rupees Only";
         const ones = ['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen'];
@@ -1020,6 +1044,7 @@
         return convert(Math.floor(num)) + " Rupees Only";
     }
 
+    // ========== TOAST NOTIFICATIONS (TOASTS) ==========
     function showToast(message, type = 'info') {
         const container = document.getElementById('toastContainer');
         const toast = document.createElement('div');
@@ -1033,6 +1058,7 @@
         document.getElementById('spinnerOverlay').style.display = show ? 'flex' : 'none';
     }
 
+    // ========== VOICE COMMANDS (AWAZ COMMANDS) ==========
     let voiceActive = false, recognition = null;
     function initVoiceRecognition() {
         if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
@@ -1061,7 +1087,7 @@
             if (voiceActive) {
                 try { recognition.start(); } catch(e) {
                     voiceActive = false;
-                    document.getElementById('voiceBtn').innerHTML = '🎤 VOICE CONTROL (OFF)';
+                    document.getElementById('voiceBtn').innerHTML = '🎤 AWAZ CONTROL (OFF)';
                     document.getElementById('voiceBtn').classList.remove('listening');
                 }
             }
@@ -1085,7 +1111,7 @@
         } else {
             if (recognition) recognition.stop();
             voiceActive = false;
-            document.getElementById('voiceBtn').innerHTML = '🎤 VOICE CONTROL (OFF)';
+            document.getElementById('voiceBtn').innerHTML = '🎤 AWAZ CONTROL (OFF)';
             document.getElementById('voiceBtn').classList.remove('listening');
             document.getElementById('voiceStatus').innerHTML = '⚪ සක්‍රීය කිරීමට ක්ලික් කරන්න';
             showToast('Voice Commands Deactivated', 'info');
@@ -1191,6 +1217,7 @@
                 document.getElementById('pickup-phone').value = deliveryPickupPhone;
                 document.getElementById('delivery-name').value = deliveryDeliveryName;
                 document.getElementById('delivery-phone').value = deliveryDeliveryPhone;
+                document.getElementById('delivery-accordion').style.display = 'block';
             }
             
             if (sTime) {
@@ -1210,6 +1237,7 @@
         } catch(e){}
     }
 
+    // ========== GEOLOCATION LOGIC (GPS LOGIC) ==========
     function startGPS() {
         if (!navigator.geolocation) return;
         showLoading(true);
@@ -1297,14 +1325,14 @@
         if (mode === 'auto') {
             document.getElementById('auto-location-card').style.display = 'block';
             document.getElementById('location-fields').style.display = 'none';
-            document.getElementById('delivery-fields').style.display = 'none';
+            document.getElementById('delivery-accordion').style.display = 'none';
             document.getElementById('manual-controls').style.display = 'none';
             if (!sTime) startGPS();
             refreshCurrentLocation();
         } else if (mode === 'gps') {
             document.getElementById('auto-location-card').style.display = 'none';
             document.getElementById('location-fields').style.display = 'block';
-            document.getElementById('delivery-fields').style.display = 'none';
+            document.getElementById('delivery-accordion').style.display = 'none';
             document.getElementById('manual-controls').style.display = 'none';
             if (!sTime) startGPS();
             setupAutocomplete('start-loc', 'start-loc-suggestions');
@@ -1312,7 +1340,7 @@
         } else if (mode === 'manual') {
             document.getElementById('auto-location-card').style.display = 'none';
             document.getElementById('location-fields').style.display = 'block';
-            document.getElementById('delivery-fields').style.display = 'none';
+            document.getElementById('delivery-accordion').style.display = 'none';
             document.getElementById('manual-controls').style.display = 'block';
             gpsReady = true;
             if (watchId) { navigator.geolocation.clearWatch(watchId); watchId = null; }
@@ -1322,7 +1350,7 @@
         } else if (mode === 'delivery') {
             document.getElementById('auto-location-card').style.display = 'none';
             document.getElementById('location-fields').style.display = 'block';
-            document.getElementById('delivery-fields').style.display = 'block';
+            document.getElementById('delivery-accordion').style.display = 'block';
             document.getElementById('manual-controls').style.display = 'none';
             if (!sTime) startGPS();
             setupAutocomplete('start-loc', 'start-loc-suggestions');
@@ -1399,7 +1427,13 @@
         }
         document.getElementById('disp-km').innerHTML = km.toFixed(2);
         document.getElementById('disp-fare').innerHTML = fare.toFixed(2);
-        if (currentMode === 'manual') document.getElementById('manual-km-input').value = km.toFixed(2);
+        
+        // Ensure manual km input field remains synced with calculations and responsive to button steps
+        const kmInput = document.getElementById('manual-km-input');
+        if (kmInput && document.activeElement !== kmInput) {
+            kmInput.value = km.toFixed(2);
+        }
+        
         let ni = document.getElementById('night-indicator');
         if (ni) ni.style.display = (nightActive && !document.getElementById('manual-fare').value) ? 'inline-block' : 'none';
     }
@@ -1416,6 +1450,7 @@
         return Math.max(0, Math.round(total));
     }
 
+    // ========== RIDE CONTROL FLOWS (TRIP FLOWS) ==========
     async function startRide() {
         if(sTime) { showToast("Ride already active!", 'warning'); return; }
         
@@ -1529,7 +1564,7 @@
         releaseWakeLock(); 
         document.body.classList.remove('ride-active'); 
         if(watchId) { navigator.geolocation.clearWatch(watchId); watchId=null; } 
-        document.getElementById('startBtn').innerHTML="START RIDE"; 
+        document.getElementById('startBtn').innerHTML="ගමන අරඹන්න (START)"; 
         document.getElementById('startBtn').classList.remove('btn-active-anim'); 
         document.getElementById('startBtn').disabled=false; 
         if(currentMode==='auto' && currentDestinationAddress) document.getElementById('nav-container').style.display='block'; 
@@ -1550,6 +1585,7 @@
     
     function generateReceiptID() { let n=new Date(), y=n.getFullYear(), m=n.getMonth(); let fy=(m>=3)?y:y-1; let c=parseInt(localStorage.getItem(`cnt_${fy}`)||"0")+1; localStorage.setItem(`cnt_${fy}`,c); return `${fy.toString().slice(-2)}${n.toLocaleString('en',{month:'short'}).toUpperCase()}-${c.toString().padStart(8,'0')}`; }
     
+    // ========== PAYMENT FUNCTIONS (PRAYASH CHANNELS) ==========
     function openPaymentPopup() { 
         if(!pendingRideData) { showToast("Kono ride data khunje paowa jayni.", 'error'); return; }
         selectedMethod = "cash"; 
@@ -1920,6 +1956,9 @@
         if(id === 'report-modal') showReportTab('daily'); 
     }
     
+    function useAISuggestion() { showToast('AI suggested route lagoo kora hoyeche!', 'success'); document.getElementById('ai-suggestions').style.display = 'none'; }
+    
+    // ========== AUTO TRANSACTION RECORDING & BACKUP MANAGEMENT (BACKUPS) ==========
     function toggleAutoBackupPref() {
         const toggleVal = document.getElementById('auto-backup-toggle').checked;
         localStorage.setItem('amt_auto_backup_pref', toggleVal ? 'true' : 'false');
@@ -2058,7 +2097,6 @@
             }));
         }
         
-        // Construct Hash Routing URL (Absolute subfolder safe for GitHub Pages and Iframe compiles)
         const currentCleanUrl = window.location.origin + window.location.pathname;
         const trackingUrl = `${currentCleanUrl}#track=${currentTrackingId}`;
         
@@ -2137,13 +2175,13 @@
                     });
                 }
                 const searchInput = document.getElementById('map-search');
-                const resultsDiv = document.getElementById('search-results');
+                const fontContainer = document.getElementById('search-results');
                 searchInput.oninput = async function() {
                     const query = this.value.trim();
-                    if (query.length < 2) { resultsDiv.style.display = 'none'; return; }
+                    if (query.length < 2) { fontContainer.style.display = 'none'; return; }
                     const data = await searchSriLankaLocations(query);
-                    resultsDiv.innerHTML = '';
-                    if (data.length === 0) { resultsDiv.innerHTML = '<div style="padding:12px;">No results found</div>'; }
+                    fontContainer.innerHTML = '';
+                    if (data.length === 0) { fontContainer.innerHTML = '<div style="padding:12px;">No results found</div>'; }
                     else {
                         data.forEach(place => {
                             const div = document.createElement('div');
@@ -2155,13 +2193,13 @@
                                 mapObj.setView([place.lat, place.lon], 14);
                                 mapMarker.setLatLng([place.lat, place.lon]);
                                 reverseMapGeocode(place.lat, place.lon);
-                                resultsDiv.style.display = 'none';
+                                fontContainer.style.display = 'none';
                                 searchInput.value = place.display_name;
                             };
-                            resultsDiv.appendChild(div);
+                            fontContainer.appendChild(div);
                         });
                     }
-                    resultsDiv.style.display = 'block';
+                    fontContainer.style.display = 'block';
                 };
             } catch(e) { console.error('Map error:', e); showToast('Map load kora sombhob hoyni', 'error'); }
         }, 150);
@@ -2251,7 +2289,7 @@
     function addFuelLog() { let date = document.getElementById('fuel-date').value || new Date().toISOString().split('T')[0]; let liters = parseFloat(document.getElementById('fuel-liters').value); let price = parseFloat(document.getElementById('fuel-price').value); if (!liters || !price) { showToast("Fuel er amount o rate likhun", 'warning'); return; } let total = liters * price; fuelLogs.push({ id: Date.now(), date, liters, price, total, notes: document.getElementById('fuel-notes').value }); saveFuelLogs(); document.getElementById('fuel-liters').value = ''; document.getElementById('fuel-price').value = ''; showToast("Fuel record add hoyeche!", 'success'); }
     function updateFuelList() { let c = document.getElementById('fuel-list'); if(c) c.innerHTML = fuelLogs.slice().reverse().slice(0,10).map(l => `<div style="padding:8px; border-bottom:1px solid #e2e8f0; font-size: 13px; color:var(--dark);">${l.date} | ${l.liters}L @ Rs.${l.price} = Rs.${l.total.toFixed(2)}</div>`).join(''); let ft = document.getElementById('fuel-total'); if(ft && document.getElementById('fuel-liters').value && document.getElementById('fuel-price').value) ft.value = (parseFloat(document.getElementById('fuel-liters').value||0) * parseFloat(document.getElementById('fuel-price').value||0)).toFixed(2); }
     function getFuelByDateRange(s,e) { return fuelLogs.filter(l => l.date >= s && l.date <= e); }
-    function showFuelReportTab(t) { document.querySelectorAll('#fuel-report-modal .report-tab').forEach(tb=>tb.classList.remove('active')); if(event&&event.target) event.target.classList.add('active'); document.getElementById('fuel-date-range-panel').style.display = t==='range'?'block':'none'; let now=new Date(), s='', e=''; if(t==='daily') { s=e=now.toISOString().split('T')[0]; } else if(t==='monthly') { s=new Date(now.getFullYear(),now.getMonth(),1).toISOString().split('T')[0]; e=new Date(now.getFullYear(),now.getMonth()+1,0).toISOString().split('T')[0]; } else if(t==='yearly') { s=new Date(now.getFullYear(),0,1).toISOString().split('T')[0]; e=new Date(now.getFullYear(),11,31).toISOString().split('T')[0]; } let logs = getFuelByDateRange(s,e); let totalL = logs.reduce((a,b)=>a+b.liters,0); let totalC = logs.reduce((a,b)=>a+b.total,0); document.getElementById('fuel-report-container').innerHTML = `<div style="text-align:center; padding:10px; color:var(--dark);"><strong>${t.toUpperCase()}</strong><br>Total: ${totalL.toFixed(2)}L | Rs.${totalC.toFixed(2)}</div><div class="payment-stats">${logs.map(r=>`<div class="stat-row"><span>${r.date}</span><span>${r.liters}L @ Rs.${r.price}=Rs.${r.total.toFixed(2)}</span></div>`).join('')}</div>`; }
+    function showFuelReportTab(t) { document.querySelectorAll('#fuel-report-modal .report-tab').forEach(tb=>tb.classList.remove('active')); if(event&&event.target) event.target.classList.add('active'); document.getElementById('fuel-date-range-panel').style.display = t==='range'?'block':'none'; let now=new Date(), s='', e=''; if(t==='daily') { s=e=now.toISOString().split('T')[0]; } else if(t==='monthly') { s=new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0]; e=new Date(now.getFullYear(), now.getMonth()+1, 0).toISOString().split('T')[0]; } else if(t==='yearly') { s=new Date(now.getFullYear(),0,1).toISOString().split('T')[0]; e=new Date(now.getFullYear(),11,31).toISOString().split('T')[0]; } let logs = getFuelByDateRange(s,e); let totalL = logs.reduce((a,b)=>a+b.liters,0); let totalC = logs.reduce((a,b)=>a+b.total,0); document.getElementById('fuel-report-container').innerHTML = `<div style="text-align:center; padding:10px; color:var(--dark);"><strong>${t.toUpperCase()}</strong><br>Total: ${totalL.toFixed(2)}L | Rs.${totalC.toFixed(2)}</div><div class="payment-stats">${logs.map(r=>`<div class="stat-row"><span>${r.date}</span><span>${r.liters}L @ Rs.${r.price}=Rs.${r.total.toFixed(2)}</span></div>`).join('')}</div>`; }
     function updateFuelReport() { let s=document.getElementById('fuel-start-date').value, e=document.getElementById('fuel-end-date').value; if(!s||!e) return; let logs=getFuelByDateRange(s,e); let totalL=logs.reduce((a,b)=>a+b.liters,0); let totalC=logs.reduce((a,b)=>a+b.total,0); document.getElementById('fuel-report-container').innerHTML = `<div style="text-align:center; color:var(--dark);"><strong>${s} to ${e}</strong><br>Total: ${totalL.toFixed(2)}L | Rs.${totalC.toFixed(2)}</div><div class="payment-stats">${logs.map(r=>`<div class="stat-row"><span>${r.date}</span><span>${r.liters}L @ Rs.${r.price}=Rs.${r.total.toFixed(2)}</span></div>`).join('')}</div>`; }
     function exportFuelCSV() { let csv = "Date,Liters,Price/L,Total,Notes\n" + fuelLogs.map(r => `${r.date},${r.liters},${r.price},${r.total.toFixed(2)},${r.notes||''}`).join("\n"); let a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], {type: 'text/csv'})); a.download = 'fuel_report.csv'; a.click(); showToast('Fuel CSV exported', 'success'); }
 
@@ -2260,12 +2298,12 @@
     function addRepairLog() { let date = document.getElementById('repair-date').value || new Date().toISOString().split('T')[0]; let desc = document.getElementById('repair-desc').value; let cost = parseFloat(document.getElementById('repair-cost').value); if (!desc || !cost) { showToast("Repairs විස්තර o cost likhun", 'warning'); return; } repairLogs.push({ id: Date.now(), date, desc, cost, garage: document.getElementById('repair-garage').value, notes: document.getElementById('repair-notes').value }); saveRepairLogs(); document.getElementById('repair-desc').value = ''; document.getElementById('repair-cost').value = ''; showToast("Repair detail record kora hoyeche!", 'success'); }
     function updateRepairList() { let c = document.getElementById('repair-list'); if(c) c.innerHTML = repairLogs.slice().reverse().slice(0,10).map(r => `<div style="padding:8px; border-bottom:1px solid #e2e8f0; font-size: 13px; color:var(--dark);">${r.date} | ${r.desc} | Rs.${r.cost.toFixed(2)}</div>`).join(''); }
     function getRepairByDateRange(s,e) { return repairLogs.filter(r => r.date >= s && r.date <= e); }
-    function showRepairReportTab(t) { document.querySelectorAll('#repair-report-modal .report-tab').forEach(tb=>tb.classList.remove('active')); if(event&&event.target) event.target.classList.add('active'); document.getElementById('repair-date-range-panel').style.display = t==='range'?'block':'none'; let now=new Date(), s='', e=''; if(t==='daily') { s=e=now.toISOString().split('T')[0]; } else if(t==='monthly') { s=new Date(now.getFullYear(),now.getMonth(),1).toISOString().split('T')[0]; e=new Date(now.getFullYear(),now.getMonth()+1,0).toISOString().split('T')[0]; } else if(t==='yearly') { s=new Date(now.getFullYear(),0,1).toISOString().split('T')[0]; e=new Date(now.getFullYear(),11,31).toISOString().split('T')[0]; } let logs = getRepairByDateRange(s,e); let totalC = logs.reduce((a,b)=>a+b.cost,0); document.getElementById('repair-report-container').innerHTML = `<div style="text-align:center; padding:10px; color:var(--dark);"><strong>${t.toUpperCase()}</strong><br>Total: Rs.${totalC.toFixed(2)}</div><div class="payment-stats">${logs.map(r=>`<div class="stat-row"><span>${r.date}</span><span>${r.desc} - Rs.${r.cost.toFixed(2)}</span></div>`).join('')}</div>`; }
+    function showRepairReportTab(t) { document.querySelectorAll('#repair-report-modal .report-tab').forEach(tb=>tb.classList.remove('active')); if(event&&event.target) event.target.classList.add('active'); document.getElementById('repair-date-range-panel').style.display = t==='range'?'block':'none'; let now=new Date(), s='', e=''; if(t==='daily') { s=e=now.toISOString().split('T')[0]; } else if(t==='monthly') { s=new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0]; e=new Date(now.getFullYear(), now.getMonth()+1, 0).toISOString().split('T')[0]; } else if(t==='yearly') { s=new Date(now.getFullYear(),0,1).toISOString().split('T')[0]; e=new Date(now.getFullYear(),11,31).toISOString().split('T')[0]; } let logs = getRepairByDateRange(s,e); let totalC = logs.reduce((a,b)=>a+b.cost,0); document.getElementById('repair-report-container').innerHTML = `<div style="text-align:center; padding:10px; color:var(--dark);"><strong>${t.toUpperCase()}</strong><br>Total: Rs.${totalC.toFixed(2)}</div><div class="payment-stats">${logs.map(r=>`<div class="stat-row"><span>${r.date}</span><span>${r.desc} - Rs.${r.cost.toFixed(2)}</span></div>`).join('')}</div>`; }
     function updateRepairReport() { let s=document.getElementById('repair-start-date').value, e=document.getElementById('repair-end-date').value; if(!s||!e) return; let logs=getRepairByDateRange(s,e); let totalC=logs.reduce((a,b)=>a+b.cost,0); document.getElementById('repair-report-container').innerHTML = `<div style="text-align:center; color:var(--dark);"><strong>${s} to ${e}</strong><br>Total: Rs.${totalC.toFixed(2)}</div><div class="payment-stats">${logs.map(r=>`<div class="stat-row"><span>${r.date}</span><span>${r.desc} - Rs.${r.cost.toFixed(2)}</span></div>`).join('')}</div>`; }
     function exportRepairCSV() { let csv = "Date,Description,Cost,Garage,Notes\n" + repairLogs.map(r => `${r.date},${r.desc},${r.cost.toFixed(2)},${r.garage||''},${r.notes||''}`).join("\n"); let a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], {type: 'text/csv'})); a.download = 'repair_report.csv'; a.click(); showToast('Repair CSV exported', 'success'); }
 
     function getTravelRidesByDateRange(s,e) { let all = JSON.parse(localStorage.getItem('rides') || '[]'); return all.filter(r => { let d = new Date(r.time).toISOString().split('T')[0]; return d >= s && d <= e; }); }
-    function showTravelReportTab(t) { document.querySelectorAll('#travel-report-modal .report-tab').forEach(tb=>tb.classList.remove('active')); if(event&&event.target) event.target.classList.add('active'); document.getElementById('travel-date-range-panel').style.display = t==='range'?'block':'none'; let now=new Date(), s='', e=''; if(t==='daily') { s=e=now.toISOString().split('T')[0]; } else if(t==='monthly') { s=new Date(now.getFullYear(),now.getMonth(),1).toISOString().split('T')[0]; e=new Date(now.getFullYear(),now.getMonth()+1,0).toISOString().split('T')[0]; } else if(t==='yearly') { s=new Date(now.getFullYear(),0,1).toISOString().split('T')[0]; e=new Date(now.getFullYear(),11,31).toISOString().split('T')[0]; } let rides = getTravelRidesByDateRange(s,e); let totalDist = rides.reduce((a,b)=>a+b.km,0); document.getElementById('travel-report-container').innerHTML = `<div style="text-align:center; padding:10px; color:var(--dark);"><strong>${t.toUpperCase()}</strong><br>Total: ${totalDist.toFixed(2)} km | Rides: ${rides.length}</div><div class="payment-stats">${rides.map(r=>`<div class="stat-row"><span>${new Date(r.time).toLocaleDateString()}</span><span>${r.from.substring(0,25)}➔${r.to.substring(0,25)}</span><span>${r.km.toFixed(2)} km</span><span>Rs.${r.fare.toFixed(2)}</span></div>`).join('')}</div>`; }
+    function showTravelReportTab(t) { document.querySelectorAll('#travel-report-modal .report-tab').forEach(tb=>tb.classList.remove('active')); if(event&&event.target) event.target.classList.add('active'); document.getElementById('travel-date-range-panel').style.display = t==='range'?'block':'none'; let now=new Date(), s='', e=''; if(t==='daily') { s=e=now.toISOString().split('T')[0]; } else if(t==='monthly') { s=new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0]; e=new Date(now.getFullYear(), now.getMonth()+1, 0).toISOString().split('T')[0]; } else if(t==='yearly') { s=new Date(now.getFullYear(),0,1).toISOString().split('T')[0]; e=new Date(now.getFullYear(),11,31).toISOString().split('T')[0]; } let rides = getTravelRidesByDateRange(s,e); let totalDist = rides.reduce((a,b)=>a+b.km,0); document.getElementById('travel-report-container').innerHTML = `<div style="text-align:center; padding:10px; color:var(--dark);"><strong>${t.toUpperCase()}</strong><br>Total: ${totalDist.toFixed(2)} km | Rides: ${rides.length}</div><div class="payment-stats">${rides.map(r=>`<div class="stat-row"><span>${new Date(r.time).toLocaleDateString()}</span><span>${r.from.substring(0,25)}➔${r.to.substring(0,25)}</span><span>${r.km.toFixed(2)} km</span><span>Rs.${r.fare.toFixed(2)}</span></div>`).join('')}</div>`; }
     function updateTravelReport() { let s=document.getElementById('travel-start-date').value, e=document.getElementById('travel-end-date').value; if(!s||!e) return; let rides=getTravelRidesByDateRange(s,e); let totalDist=rides.reduce((a,b)=>a+b.km,0); document.getElementById('travel-report-container').innerHTML = `<div style="text-align:center; color:var(--dark);"><strong>${s} to ${e}</strong><br>Total: ${totalDist.toFixed(2)} km | Rides: ${rides.length}</div><div class="payment-stats">${rides.map(r=>`<div class="stat-row"><span>${new Date(r.time).toLocaleDateString()}</span><span>${r.from.substring(0,30)}➔${r.to.substring(0,30)}</span><span>${r.km.toFixed(2)} km</span><span>Rs.${r.fare.toFixed(2)}</span></div>`).join('')}</div>`; }
     function exportTravelCSV() { let rides = JSON.parse(localStorage.getItem('rides') || '[]'); let csv = "Date,From,To,Distance,Fare,Payment\n" + rides.map(r => `${new Date(r.time).toLocaleDateString()},${r.from},${r.to},${r.km.toFixed(2)},${r.fare.toFixed(2)},${r.payment?.method||'Cash'}`).join("\n"); let a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], {type: 'text/csv'})); a.download = 'travel_report.csv'; a.click(); showToast('Travel CSV exported', 'success'); }
     async function printTravelReceipt() { let rides = JSON.parse(localStorage.getItem('rides') || '[]'); let totalDist = rides.reduce((s,r)=>s+r.km,0); let totalFare = rides.reduce((s,r)=>s+r.fare,0); let html = `<div class="receipt-print"><div class="r-header">TRAVEL SUMMARY</div><div class="r-row"><span>Total Rides:</span><b>${rides.length}</b></div><div class="r-row"><span>Total Distance:</span><b>${totalDist.toFixed(2)} km</b></div><div class="r-row"><span>Total Earnings:</span><b>Rs.${totalFare.toFixed(2)}</b></div><div class="r-divider">-------------------</div>${rides.slice().reverse().slice(0,50).map(r=>`<div class="r-row-full"><span class="r-label">From:</span><span class="r-address">${r.from.substring(0,50)}</span><span class="r-label">To:</span><span class="r-address">${r.to.substring(0,50)}</span><span>${r.km.toFixed(2)} km | Rs.${r.fare.toFixed(2)}</span></div>`).join('')}<div class="r-divider">Thank you! 🚕</div></div>`; let win = window.open('', '_blank'); win.document.write(html); win.document.close(); win.print(); }
@@ -2460,6 +2498,65 @@
                 }
             } catch(e) { console.error('Odometer map load failed: ', e); }
         }, 300);
+    }
+
+    // ========== MANUAL ODOMETER CHANGES SYNC (Fixed calculation trigger loop) ==========
+    function manualKmInputChanged() {
+        let val = parseFloat(document.getElementById('manual-km-input').value);
+        if (!isNaN(val) && val >= 0) {
+            totalMeters = val * 1000;
+            updateDisplay();
+            if (sTime) {
+                saveRideState();
+            }
+        }
+    }
+
+    function manualAddDistance(km) {
+        if(currentMode!=='manual') { showToast("Manual mode required", 'warning'); return; }
+        let currentVal = parseFloat(document.getElementById('manual-km-input').value) || 0;
+        let newVal = Math.max(0, currentVal + km);
+        totalMeters = newVal * 1000;
+        document.getElementById('manual-km-input').value = newVal.toFixed(2);
+        updateDisplay();
+        if (sTime) {
+            saveRideState();
+        }
+        showToast(`Distance ${km>0?'+':''}${km} km`, 'info');
+    }
+
+    function setManualDistance() {
+        if(currentMode!=='manual') { showToast("Manual mode required", 'warning'); return; }
+        let val = parseFloat(document.getElementById('manual-km-input').value);
+        if(!isNaN(val) && val>=0) {
+            totalMeters = val*1000;
+            updateDisplay();
+            if (sTime) {
+                saveRideState();
+            }
+            showToast(`Distance set to ${val.toFixed(2)} km`, 'success');
+        }
+    }
+
+    // ========== ACCORDION TOGGLE MECHANISM (UI space saver) ==========
+    function toggleAccordion(id) {
+        const card = document.getElementById(id);
+        if (!card) return;
+        
+        const isOpen = card.classList.contains('open');
+        
+        // Collapse all other accordions first
+        document.querySelectorAll('.collapsible-card').forEach(c => {
+            if (c.id !== id) {
+                c.classList.remove('open');
+            }
+        });
+        
+        if (isOpen) {
+            card.classList.remove('open');
+        } else {
+            card.classList.add('open');
+        }
     }
 
     setTimeout(() => requestNotificationPermission(), 3000);
